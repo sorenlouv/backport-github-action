@@ -2,7 +2,7 @@ const core = require("@actions/core");
 const { context } = require("@actions/github");
 
 try {
-  const githubToken = getInput("github_token", { required: true });
+  const githubToken = core.getInput("github_token", { required: true });
   console.log(`Hello ${githubToken}!`);
 
   // set output
