@@ -1,4 +1,4 @@
-name: "Hello World"
+name: "Backport"
 description: "Greet someone and record the time"
 inputs:
   github_token:
