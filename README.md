@@ -13,7 +13,7 @@ on:
 jobs:
   backport:
     runs-on: ubuntu-18.04
-    name: Backport
+    name: Backport Action
     steps:
       - name: Backport
         uses: sqren/backport-github-action@v1
