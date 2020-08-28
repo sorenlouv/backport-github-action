@@ -1,0 +1,12 @@
+name: "Hello World"
+description: "Greet someone and record the time"
+inputs:
+  github_token:
+    description: Token for the GitHub API.
+    required: true
+outputs:
+  time:
+    description: "The time we greeted you"
+runs:
+  using: "node12"
+  main: "index.js"
