@@ -1,15 +1,12 @@
-name: "Backport Action"
-description: "Greet someone and record the time"
+name: 'Backport Action'
+description: 'Greet someone and record the time'
 inputs:
   github_token:
     description: Token for the GitHub API.
     required: true
-outputs:
-  time:
-    description: "The time we greeted you"
 runs:
-  using: "node12"
-  main: "index.js"
+  using: 'node12'
+  main: 'dist/index.js'
 branding:
   icon: git-branch
   color: green

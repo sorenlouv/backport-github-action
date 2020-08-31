@@ -16,10 +16,7 @@ jobs:
     name: Backport Action
     steps:
       - name: Backport
-        id: backport
-        uses: sqren/backport-github-action@v1
+        uses: sqren/backport-github-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Get the output time
-        run: echo "The time was ${{ steps.backport.outputs.time }}"
 ```
