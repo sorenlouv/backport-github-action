@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPullRequestBody = exports.addPullRequestComment = void 0;
-const request_1 = require("@octokit/request");
-function addPullRequestComment({ upstream, pullNumber, accessToken, backportResponse, }) {
+import { request } from '@octokit/request';
+export function addPullRequestComment({ upstream, pullNumber, accessToken, backportResponse, }) {
     // abort if there are 0 results and an error occurred
     if (backportResponse.results.length === 0) {
         console.log(`Not posting pull request comment because there are no results to publish`);
@@ -10,7 +7,7 @@ function addPullRequestComment({ upstream, pullNumber, accessToken, backportResp
     }
     const [repoOwner, repoName] = upstream.split('/');
     console.log(`Posting comment to https://github.com/${repoOwner}/${repoName}/pull/${pullNumber}`);
-    return request_1.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+    return request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
         headers: {
             authorization: `token ${accessToken}`,
         },
@@ -20,8 +17,7 @@ function addPullRequestComment({ upstream, pullNumber, accessToken, backportResp
         body: getPullRequestBody(backportResponse),
     });
 }
-exports.addPullRequestComment = addPullRequestComment;
-function getPullRequestBody(backportResponse) {
+export function getPullRequestBody(backportResponse) {
     const header = backportResponse.success
         ? '## 💚 Backport successful\n'
         : '## 💔 Backport was not successful\n';
@@ -43,4 +39,3 @@ function getPullRequestBody(backportResponse) {
         : '';
     return `${header}${detailsHeader}${details}\n${generalErrorMessage}`;
 }
-exports.getPullRequestBody = getPullRequestBody;

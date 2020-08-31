@@ -1,9 +1,11 @@
 {
   "include": ["src/**/*"],
   "compilerOptions": {
-    "target": "es2018",
-    "lib": ["es2019"],
-    "module": "commonjs",
+    "target": "esnext",
+    "lib": ["es2020"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "types": ["node"],
     "outDir": "./dist",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
