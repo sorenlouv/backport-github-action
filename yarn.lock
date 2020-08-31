@@ -634,10 +634,10 @@ axios@^0.19.2:
   dependencies:
     follow-redirects "1.5.10"
 
-backport@^5.5.5:
-  version "5.5.5"
-  resolved "https://registry.yarnpkg.com/backport/-/backport-5.5.5.tgz#cf42c6a7ade36759d1a48ccd21b9040c4e88c9aa"
-  integrity sha512-6HZ7C5QQRXS1OdYnd3NBo3yrYyYHQjYGV9W2O8JvC83uXvlMhK2dSuiDavC6TXGZ9CD2HjDxn0+gNe2GBB8fIA==
+backport@^5.6.0-beta:
+  version "5.6.0-beta"
+  resolved "https://registry.yarnpkg.com/backport/-/backport-5.6.0-beta.tgz#7437e087f6988d98d4fb1c1f347ed5356452ae11"
+  integrity sha512-RBgF0b3hajNCjptqYfZUCbOT4Fi1ke2TVVz0HSlhkLotLCoKh8Cz3KSKP2KoKn8BDG2h8UiXKkKH0Ivef2OUYQ==
   dependencies:
     "@octokit/rest" "^18.0.3"
     "@types/lodash.difference" "^4.5.6"
