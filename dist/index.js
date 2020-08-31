@@ -31,7 +31,7 @@ async function init() {
         // const isMerged = payload.action === "closed" && payload.pull_request.merged;
         const isMerged = payload.action === 'closed'; // TODO: replace with real `isMerged`
         if (!isMerged) {
-            console.log('PR not merged yet...');
+            console.log('PR not merged yet...', payload.action);
             return;
         }
         const accessToken = core.getInput('github_token', { required: true });
