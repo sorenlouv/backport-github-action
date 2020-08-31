@@ -1,9 +1,9 @@
 {
   "include": ["src/**/*"],
   "compilerOptions": {
-    "target": "esnext",
-    "lib": ["es2020"],
-    "module": "esnext",
+    "target": "ES2019",
+    "lib": ["ES2019"],
+    "module": "CommonJS",
     "moduleResolution": "node",
     "types": ["node"],
     "outDir": "./dist",
