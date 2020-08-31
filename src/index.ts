@@ -43,4 +43,6 @@ async function init() {
   }
 }
 
-init();
+init().catch((e) => {
+  console.log('An error occurred', e);
+});
