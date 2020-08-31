@@ -40,4 +40,6 @@ async function init() {
         core_1.default.setFailed(error.message);
     }
 }
-init();
+init().catch((e) => {
+    console.log('An error occurred', e);
+});
