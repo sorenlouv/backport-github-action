@@ -10,10 +10,9 @@ async function init() {
 
   try {
     // ignore anything but merged PRs
-    // const isMerged = payload.action === "closed" && payload.pull_request.merged;
-    const isMerged = payload.action === 'closed'; // TODO: replace with real `isMerged`
+    const isMerged = payload.pull_request.merged;
     if (!isMerged) {
-      console.log('PR not merged yet...', payload.action);
+      console.log('PR not merged yet...');
       return;
     }
 
