@@ -18,13 +18,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const github_1 = require("@actions/github");
-const backport_1 = __importDefault(require("backport"));
+const backport = __importStar(require("backport"));
 const getConfig_1 = require("./getConfig");
 const addPullRequestComment_1 = require("./addPullRequestComment");
 async function init() {
@@ -47,7 +44,7 @@ async function init() {
             throw new Error('Missing pull request number');
         }
         console.log('Config', config);
-        const backportResponse = await backport_1.default.run(config);
+        const backportResponse = await backport.run(config);
         await addPullRequestComment_1.addPullRequestComment({
             upstream: config.upstream,
             pullNumber: config.pullNumber,
