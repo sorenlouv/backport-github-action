@@ -4,8 +4,14 @@ import * as backport from 'backport';
 import { EventPayloads } from '@octokit/webhooks';
 import { getBackportConfig } from './getConfig';
 import { addPullRequestComment } from './addPullRequestComment';
+import { exec } from '@actions/exec';
 
 async function init() {
+  await exec(`git config --global user.name "${context.actor}"`);
+  await exec(
+    `git config --global user.email "github-action-${context.actor}@users.noreply.github.com"`
+  );
+
   const payload = context.payload as EventPayloads.WebhookPayloadPullRequest;
 
   try {
