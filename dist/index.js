@@ -24,7 +24,11 @@ const github_1 = require("@actions/github");
 const backport = __importStar(require("backport"));
 const getConfig_1 = require("./getConfig");
 const addPullRequestComment_1 = require("./addPullRequestComment");
+const exec_1 = require("@actions/exec");
 async function init() {
+    console.log('hello1');
+    await exec_1.exec(`git config --global user.name "${github_1.context.actor}"`);
+    await exec_1.exec(`git config --global user.email "github-action-${github_1.context.actor}@users.noreply.github.com"`);
     const payload = github_1.context.payload;
     try {
         // ignore anything but merged PRs
