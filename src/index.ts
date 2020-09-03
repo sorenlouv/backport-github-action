@@ -7,6 +7,7 @@ import { addPullRequestComment } from './addPullRequestComment';
 import { exec } from '@actions/exec';
 
 async function init() {
+  console.log('hello1');
   await exec(`git config --global user.name "${context.actor}"`);
   await exec(
     `git config --global user.email "github-action-${context.actor}@users.noreply.github.com"`
