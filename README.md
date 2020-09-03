@@ -12,11 +12,15 @@ on:
 
 jobs:
   backport:
-    runs-on: ubuntu-18.04
     name: Backport Action
+    runs-on: ubuntu-latest
     steps:
-      - name: Backport
-        uses: sqren/backport-github-action@master
+      - uses: actions/checkout@v2
+        with:
+          repository: 'sqren/backport-github-action'
+      - run: yarn
+      - run: yarn tsc
+      - uses: sqren/backport-github-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 ```
