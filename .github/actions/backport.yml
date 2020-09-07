@@ -1,5 +1,6 @@
 name: 'Backport Action'
-description: 'Greet someone and record the time'
+author: Søren Louv <sorenlouv@gmail.com>
+description: 'Backport merged pull requests to other branches via labels'
 inputs:
   github_token:
     description: Token for the GitHub API.

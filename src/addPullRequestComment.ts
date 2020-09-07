@@ -1,17 +1,15 @@
-import { request } from '@octokit/request';
+import { Octokit } from '@octokit/action';
 import { BackportResponse } from 'backport/dist/main';
 
-export function addPullRequestComment({
+export async function addPullRequestComment({
   upstream,
   pullNumber,
-  accessToken,
   backportResponse,
 }: {
   upstream: string;
   pullNumber: number;
-  accessToken: string;
   backportResponse: BackportResponse;
-}): unknown {
+}): Promise<unknown> {
   // abort if there are 0 results and an error occurred
   if (backportResponse.results.length === 0) {
     console.log(
@@ -25,14 +23,13 @@ export function addPullRequestComment({
     `Posting comment to https://github.com/${repoOwner}/${repoName}/pull/${pullNumber}`
   );
 
-  return request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-    headers: {
-      authorization: `token ${accessToken}`,
-    },
+  const octokit = new Octokit();
+
+  return octokit.issues.createComment({
+    body: getPullRequestBody(backportResponse),
+    issue_number: pullNumber,
     owner: repoOwner,
     repo: repoName,
-    issue_number: pullNumber,
-    body: getPullRequestBody(backportResponse),
   });
 }
 
