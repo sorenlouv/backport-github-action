@@ -17,7 +17,8 @@ jobs:
     name: Backport Action
     runs-on: ubuntu-latest
     steps:
-      - uses: sqren/backport-github-action@v1
+      - name: Backport
+        uses: sqren/backport-github-action@v1
         with:
           # Required
           # Token to authenticate requests. Can be left untouched
@@ -43,17 +44,6 @@ jobs:
           # target_pr_labels: 'backport'
 ```
 
-Optionally, Add a [json config](https://github.com/sqren/backport/blob/master/docs/configuration.md#project-config-backportrcjson) to the repository root:
+## Related
 
-```json
-{
-  "upstream": "elastic/kibana",
-  "targetBranchChoices": [
-    { "name": "6.x", "checked": true },
-    "6.3",
-    "6.2",
-    "6.1",
-    "6.0"
-  ]
-}
-```
+- [backport cli](https://github.com/sqren/backport)
