@@ -11,8 +11,14 @@ async function init() {
   await exec(
     `git config --global user.email "github-action-${context.actor}@users.noreply.github.com"`
   );
+  // output backport version
+  await exec('backport --version');
 
   const payload = context.payload as EventPayloads.WebhookPayloadPullRequest;
+
+  if (!payload.pull_request) {
+    throw new Error('Pull request payload unavailable');
+  }
 
   try {
     // ignore anything but merged PRs
