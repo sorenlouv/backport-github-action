@@ -12,7 +12,7 @@ async function init() {
     `git config --global user.email "github-action-${context.actor}@users.noreply.github.com"`
   );
   // output backport version
-  await exec('backport --version');
+  await exec('./node_modules/.bin/backport --version');
 
   const payload = context.payload as EventPayloads.WebhookPayloadPullRequest;
 
