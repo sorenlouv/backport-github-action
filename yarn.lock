@@ -685,7 +685,7 @@ axios@^0.19.2:
   dependencies:
     follow-redirects "1.5.10"
 
-backport@^5.6.0:
+backport@^5.6.0-beta.2:
   version "5.6.0-beta-1"
   resolved "https://registry.yarnpkg.com/backport/-/backport-5.6.0-beta-1.tgz#1b59b7126a15b63b673b5eb629da930b69150fae"
   integrity sha512-E/erd1MemqMZCEkaG8cbmF72Xp8OqTszKvIJ+mQLtYVrbHrQfy4r5Amqw5KlM0/HR+W/hwOl8lGSn5qgCVRNTA==
