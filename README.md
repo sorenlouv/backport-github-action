@@ -1,6 +1,9 @@
-This is a Github Action based on the popular cli tool [`backport`](https://github.com/sqren/backport).
+This is a Github Action based on the popular cli tool [`backport`](https://github.com/sqren/backport). It will automatically create backports when pull requests are merged, based on the labels added. 
 
-# How to use
+### Example
+By merging a pull request with the labels `backport-to-staging` and `backport-to-production` Backport Github Action (BGA) will automatically create backport pull requests to the branchs "staging" and "production". 
+
+## How to use
 
 Add the backport workflow to `.github/workflows/backport.yml`:
 
@@ -26,13 +29,8 @@ jobs:
 
           # Required
           # Backport PR by adding a label
-          # Example: PRs labeled with "backport-to-branch-a" will be backported to "branch-a"
+          # Example: PRs labeled with "backport-to-staging" will be backported to "staging"
           backport_by_label: '^backport-to-(.*)$'
-
-          # Optional
-          # Backport PR by writing a comment
-          # Example: PRs commented with "backport to branch-a" will be backported to "branch-a"
-          # backport_by_comment: '^backport to (.*)$'
 
           # Optional
           # Title for the backport PR
@@ -44,6 +42,13 @@ jobs:
           # target_pr_labels: 'backport'
 ```
 
-## Related
+## Backport CLI (optional)
+[Backport CLI](https://github.com/sqren/backport) is a tool that makes it much easier to create ad-hoc backport pull requests. This integrates seemlessly with the Backport Github Action. All you need to do is to add a backport configuration file to the repository root:
+```jsonc
+// .backportrc.json
+{
+  "upstream": "<repo name>/<repo owner>",
+  "targetBranchChoices": ["master", "staging", "production", "<any other branch>"] 
+}
+```
 
-- [backport cli](https://github.com/sqren/backport)
