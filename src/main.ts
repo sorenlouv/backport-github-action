@@ -10,8 +10,6 @@ export async function main(
   payload: EventPayloads.WebhookPayloadPullRequest,
   actor: Context['actor']
 ) {
-  console.log(JSON.stringify({ payload }));
-  console.log(JSON.stringify({ actor }));
   if (!payload.pull_request) {
     throw new Error('Pull request payload unavailable');
   }
