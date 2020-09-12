@@ -71,6 +71,7 @@ export async function main(
   await addPullRequestComment({
     upstream: config.upstream,
     pullNumber: config.pullNumber,
+    accessToken,
     backportResponse,
   });
 }
