@@ -1,6 +1,6 @@
 {
   "name": "backport-github-action",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "license": "MIT",
   "files": [
     "action.yml",
