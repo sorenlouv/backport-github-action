@@ -47,7 +47,7 @@ export async function getBackportConfig({
     // pullNumber: 77139,
     //@ts-expect-error (to be fixed in https://github.com/octokit/webhooks/issues/136)
     assignees: [payload.pull_request.merged_by?.login],
-    fork: false,
+    fork: true,
   };
 
   if (backportByLabel) {
