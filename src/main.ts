@@ -27,7 +27,7 @@ export async function main(
   }
 
   // Inputs
-  const accessToken = core.getInput('github_token', { required: true });
+  const accessToken = core.getInput('access_token', { required: true });
   const backportByLabel = core.getInput('backport_by_label', {
     required: false,
   });

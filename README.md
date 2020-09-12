@@ -21,8 +21,8 @@ jobs:
         uses: sqren/backport-github-action@v1
         with:
           # Required
-          # Token to authenticate requests. Can be left untouched
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Token to authenticate requests
+          access_token: ${{ secrets.GITHUB_TOKEN }}
 
           # Required
           # Backport PR by adding a label

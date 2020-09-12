@@ -2,9 +2,9 @@ name: 'Backport Action'
 author: Søren Louv <sorenlouv@gmail.com>
 description: 'Backport merged pull requests to other branches via labels'
 inputs:
-  github_token:
-    description: Token for the GitHub API.
-    required: true
+  access_token:
+    description: 'GITHUB_TOKEN or a `repo` scoped Personal Access Token'
+    default: ${{ github.token }}
   backport_by_label:
     description: Backport PR by adding a label
     required: false
