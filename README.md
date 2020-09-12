@@ -1,4 +1,4 @@
-This is a Github Action based on the popular cli tool [`backport`](https://github.com/sqren/backport). It will automatically create backports when pull requests are merged, based on the labels added. 
+This Github Action will automatically create backport pull request when a pull request are merged, based on the labels it contains.
 
 ### Example
 By merging a pull request with the labels `backport-to-staging` and `backport-to-production` Backport Github Action (BGA) will automatically create backport pull requests to the branchs "staging" and "production". 
