@@ -605,10 +605,10 @@ axios@^0.19.0:
   dependencies:
     follow-redirects "1.5.10"
 
-backport@5.6.0-beta.2:
-  version "5.6.0-beta.2"
-  resolved "https://registry.yarnpkg.com/backport/-/backport-5.6.0-beta.2.tgz#41ea70610f850fe8f676012717a2a3221cf606f3"
-  integrity sha512-NoxW/HasFcK5GjhxTfF5xzV0U+tDp/MCGSo+HmPg56PILmyo2ESnd5XsoEeeEpBnpTl0yWWFVBrMAzEJjsia4Q==
+backport@5.6.0-beta.3:
+  version "5.6.0-beta.3"
+  resolved "https://registry.yarnpkg.com/backport/-/backport-5.6.0-beta.3.tgz#7dfefb08117eafe75a71d2dc6bb61891ed312c48"
+  integrity sha512-+NPTMFuEg5wvnMFAS1TjfFa87rDrkPbMbtpN0I0LeL64q9JMX7AR6dt5C+00WJY+QU7J7H1Sv+XAux2FJzMFRQ==
   dependencies:
     "@octokit/rest" "^18.0.5"
     "@types/lodash.difference" "^4.5.6"
