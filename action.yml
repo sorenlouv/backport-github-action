@@ -12,7 +12,7 @@ inputs:
     description: Title for the backport PR
     required: false
   target_pr_labels:
-    description: Comma separated list of labels that will be added to the backport PR.
+    description: Comma-separated list of labels that will be added to the backport PR.
     required: false
 runs:
   using: 'node12'
