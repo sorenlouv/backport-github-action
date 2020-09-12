@@ -1,12 +1,22 @@
-name: "Hello World"
-description: "Greet someone and record the time"
+name: 'Backport Action'
+author: Søren Louv <sorenlouv@gmail.com>
+description: 'Backport merged pull requests to other branches via labels'
 inputs:
   github_token:
     description: Token for the GitHub API.
     required: true
-outputs:
-  time:
-    description: "The time we greeted you"
+  backport_by_label:
+    description: Backport PR by adding a label
+    required: false
+  pr_title:
+    description: Title for the backport PR
+    required: false
+  target_pr_labels:
+    description: Comma-separated list of labels that will be added to the backport PR.
+    required: false
 runs:
-  using: "node12"
-  main: "index.js"
+  using: 'node12'
+  main: 'dist/index.js'
+branding:
+  icon: git-branch
+  color: green
