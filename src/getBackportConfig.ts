@@ -39,12 +39,10 @@ export async function getBackportConfig({
   const config: ConfigOptions = {
     ...projectConfig,
     upstream: `${payload.repository.owner.login}/${payload.repository.name}`,
-    // upstream: 'elastic/kibana',
     username,
     accessToken,
     ci: true,
     pullNumber: payload.pull_request.number,
-    // pullNumber: 77139,
     //@ts-expect-error (to be fixed in https://github.com/octokit/webhooks/issues/136)
     assignees: [payload.pull_request.merged_by?.login],
     fork: false,
