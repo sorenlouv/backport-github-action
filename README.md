@@ -7,7 +7,7 @@ Add the backport workflow to `.github/workflows/backport.yml`:
 ```yml
 name: Backport
 on:
-  pull_request:
+  pull_request_target:
     types:
       - closed
       - labeled
