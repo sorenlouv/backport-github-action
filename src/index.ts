@@ -1,12 +1,46 @@
 import * as core from '@actions/core';
 import { context } from '@actions/github';
 import { EventPayloads } from '@octokit/webhooks';
-import { main } from './main';
+import { initAction } from './initAction';
+import { exec } from '@actions/exec';
+import { consoleLog } from './logger';
 
-const payload = context.payload as EventPayloads.WebhookPayloadPullRequest;
-const actor = context.actor;
+async function init() {
+  const payload = context.payload as EventPayloads.WebhookPayloadPullRequest;
+  const { actor } = context;
 
-main(payload, actor).catch((error) => {
-  console.log('An error occurred', error);
+  await exec(`git config --global user.name "${actor}"`);
+  await exec(
+    `git config --global user.email "github-action-${actor}@users.noreply.github.com"`
+  );
+
+  // Inputs
+  const accessToken = core.getInput('access_token', { required: true });
+  const backportByLabel = core.getInput('backport_by_label', {
+    required: false,
+  });
+  const prTitle = core.getInput('pr_title', {
+    required: false,
+  });
+  const targetPRLabels = core.getInput('target_pr_labels', {
+    required: false,
+  });
+  // TODO:
+  // const backportByComment = core.getInput('backport_by_comment', {
+  //   required: false,
+  // });
+
+  const inputs = {
+    accessToken,
+    backportByLabel,
+    prTitle,
+    targetPRLabels,
+  };
+
+  await initAction({ inputs, payload });
+}
+
+init().catch((error) => {
+  consoleLog('An error occurred', error);
   core.setFailed(error.message);
 });

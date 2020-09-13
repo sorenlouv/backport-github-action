@@ -1,18 +1,20 @@
 import { EventPayloads } from '@octokit/webhooks';
-import { ConfigOptions } from 'backport/dist/options/ConfigOptions';
+import { getTargetBranchForLabel, ConfigOptions } from 'backport';
+
 import got from 'got';
+import { consoleLog } from './logger';
 
 async function getProjectConfig(
   payload: EventPayloads.WebhookPayloadPullRequest
 ) {
   const configUrl = `https://raw.githubusercontent.com/${payload.repository.owner.login}/${payload.repository.name}/${payload.repository.default_branch}/.backportrc.json`;
-  console.log(`Fetching project config from ${configUrl}`);
+  consoleLog(`Fetching project config from ${configUrl}`);
   try {
     const response = await got(configUrl);
     return JSON.parse(response.body) as ConfigOptions;
   } catch (e) {
     if (e.response?.statusCode === 404) {
-      console.log(`No project config found`);
+      consoleLog(`No project config found`);
       return null;
     }
 
@@ -60,6 +62,17 @@ export async function getBackportConfig({
 
   if (targetPRLabels) {
     config.targetPRLabels = targetPRLabels.split(',');
+  }
+  if (payload.action === 'labeled' && config.branchLabelMapping) {
+    const label = payload.label?.name as string;
+    const targetBranch = getTargetBranchForLabel({
+      label,
+      branchLabelMapping: config.branchLabelMapping,
+    });
+
+    if (targetBranch) {
+      config.targetBranches = [targetBranch];
+    }
   }
 
   return config;
