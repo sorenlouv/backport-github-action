@@ -2,6 +2,7 @@ import { EventPayloads } from '@octokit/webhooks';
 import { getTargetBranchForLabel, ConfigOptions } from 'backport';
 
 import got from 'got';
+import { Inputs } from './index';
 import { consoleLog } from './logger';
 
 async function getProjectConfig(
@@ -22,27 +23,27 @@ async function getProjectConfig(
   }
 }
 
+export type RequiredOptions = {
+  accessToken: string;
+  upstream: string;
+  pullNumber: number;
+};
+
 export async function getBackportConfig({
   payload,
   username,
-  accessToken,
-  backportByLabel,
-  prTitle,
-  targetPRLabels,
+  inputs,
 }: {
   payload: EventPayloads.WebhookPayloadPullRequest;
   username: string;
-  accessToken: string;
-  backportByLabel?: string;
-  prTitle?: string;
-  targetPRLabels?: string;
-}): Promise<ConfigOptions> {
+  inputs: Inputs;
+}): Promise<ConfigOptions & RequiredOptions> {
   const projectConfig = await getProjectConfig(payload);
-  const config: ConfigOptions = {
+  const config: ConfigOptions & { accessToken: string } = {
     ...projectConfig,
     upstream: `${payload.repository.owner.login}/${payload.repository.name}`,
     username,
-    accessToken,
+    accessToken: inputs.accessToken,
     ci: true,
     pullNumber: payload.pull_request.number,
     //@ts-expect-error (to be fixed in https://github.com/octokit/webhooks/issues/136)
@@ -50,18 +51,18 @@ export async function getBackportConfig({
     fork: false,
   };
 
-  if (backportByLabel) {
+  if (inputs.backportByLabel) {
     config.branchLabelMapping = {
-      [backportByLabel]: '$1',
+      [inputs.backportByLabel]: '$1',
     };
   }
 
-  if (prTitle) {
-    config.prTitle = prTitle;
+  if (inputs.prTitle) {
+    config.prTitle = inputs.prTitle;
   }
 
-  if (targetPRLabels) {
-    config.targetPRLabels = targetPRLabels.split(',');
+  if (inputs.targetPRLabels) {
+    config.targetPRLabels = inputs.targetPRLabels.split(',');
   }
   if (payload.action === 'labeled' && config.branchLabelMapping) {
     const label = payload.label?.name as string;
@@ -75,5 +76,25 @@ export async function getBackportConfig({
     }
   }
 
-  return config;
+  consoleLog('Config', config);
+
+  const { upstream, pullNumber, branchLabelMapping } = config;
+  if (!upstream) {
+    throw new Error('Missing upstream');
+  }
+
+  if (!pullNumber) {
+    throw new Error('Missing pull request number');
+  }
+
+  if (!branchLabelMapping) {
+    throw new Error('Missing required `branchLabelMapping`');
+  }
+
+  return {
+    ...config,
+    upstream,
+    pullNumber,
+    branchLabelMapping,
+  };
 }

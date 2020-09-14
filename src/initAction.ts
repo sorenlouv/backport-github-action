@@ -2,18 +2,13 @@ import * as backport from 'backport';
 import { EventPayloads } from '@octokit/webhooks';
 import { getBackportConfig } from './getBackportConfig';
 import { addPullRequestComment } from './addPullRequestComment';
-import { consoleLog } from './logger';
+import { Inputs } from '.';
 
 export async function initAction({
   inputs,
   payload,
 }: {
-  inputs: {
-    accessToken: string;
-    backportByLabel: string;
-    prTitle: string;
-    targetPRLabels: string;
-  };
+  inputs: Inputs;
   payload: EventPayloads.WebhookPayloadPullRequest;
 }) {
   if (!payload.pull_request) {
@@ -30,32 +25,13 @@ export async function initAction({
   const config = await getBackportConfig({
     payload,
     username,
-    accessToken: inputs.accessToken,
-    backportByLabel: inputs.backportByLabel,
-    prTitle: inputs.prTitle,
-    targetPRLabels: inputs.targetPRLabels,
+    inputs,
   });
-
-  consoleLog('Config', config);
-
-  if (!config.upstream) {
-    throw new Error('Missing upstream');
-  }
-
-  if (!config.pullNumber) {
-    throw new Error('Missing pull request number');
-  }
-
-  if (!config.branchLabelMapping) {
-    throw new Error('Missing required `branchLabelMapping`');
-  }
 
   const backportResponse = await backport.run(config);
 
   await addPullRequestComment({
-    upstream: config.upstream,
-    pullNumber: config.pullNumber,
-    accessToken: inputs.accessToken,
+    config,
     backportResponse,
   });
 

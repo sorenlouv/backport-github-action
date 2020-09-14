@@ -1,6 +1,6 @@
 {
   "name": "backport-github-action",
-  "version": "1.0.28",
+  "version": "1.0.29",
   "license": "MIT",
   "files": [
     "action.yml",
@@ -15,11 +15,11 @@
     "@actions/core": "^1.2.5",
     "@actions/exec": "^1.0.4",
     "@actions/github": "^4.0.0",
-    "@octokit/rest": "^18.0.5",
+    "@octokit/rest": "^18.0.6",
     "@octokit/webhooks": "^7.11.2",
     "@vercel/ncc": "^0.24.0",
-    "backport": "5.6.0-beta.5",
-    "got": "^11.6.0",
+    "backport": "5.6.0-beta.6",
+    "got": "^11.6.2",
     "typescript": "^4.0.2"
   },
   "devDependencies": {

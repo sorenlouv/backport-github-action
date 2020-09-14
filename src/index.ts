@@ -5,6 +5,13 @@ import { initAction } from './initAction';
 import { exec } from '@actions/exec';
 import { consoleLog } from './logger';
 
+export type Inputs = {
+  accessToken: string;
+  backportByLabel?: string;
+  prTitle?: string;
+  targetPRLabels?: string;
+};
+
 async function init() {
   const payload = context.payload as EventPayloads.WebhookPayloadPullRequest;
   const { actor } = context;
@@ -30,7 +37,7 @@ async function init() {
   //   required: false,
   // });
 
-  const inputs = {
+  const inputs: Inputs = {
     accessToken,
     backportByLabel,
     prTitle,

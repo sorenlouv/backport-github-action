@@ -1,16 +1,13 @@
 import { Octokit } from '@octokit/rest';
-import { BackportResponse } from 'backport';
+import { BackportResponse, ConfigOptions } from 'backport';
+import { RequiredOptions } from './getBackportConfig';
 import { consoleLog } from './logger';
 
 export async function addPullRequestComment({
-  upstream,
-  pullNumber,
-  accessToken,
+  config,
   backportResponse,
 }: {
-  upstream: string;
-  pullNumber: number;
-  accessToken: string;
+  config: ConfigOptions & RequiredOptions;
   backportResponse: BackportResponse;
 }): Promise<unknown> {
   // abort if there are 0 results and an error occurred
@@ -21,18 +18,18 @@ export async function addPullRequestComment({
     return;
   }
 
-  const [repoOwner, repoName] = upstream.split('/');
+  const [repoOwner, repoName] = config.upstream.split('/');
   consoleLog(
-    `Posting comment to https://github.com/${repoOwner}/${repoName}/pull/${pullNumber}`
+    `Posting comment to https://github.com/${repoOwner}/${repoName}/pull/${config.pullNumber}`
   );
 
   const octokit = new Octokit({
-    auth: accessToken,
+    auth: config.accessToken,
   });
 
   return octokit.issues.createComment({
     body: getPullRequestBody(backportResponse),
-    issue_number: pullNumber,
+    issue_number: config.pullNumber,
     owner: repoOwner,
     repo: repoName,
   });

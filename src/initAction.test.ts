@@ -49,6 +49,16 @@ describe('initAction', () => {
         await initAction({ payload, inputs });
       });
 
+      it('does not specify `targetBranches`', () => {
+        const config = spy.mock.calls[0][0];
+        expect(config.targetBranches).toBeUndefined();
+      });
+
+      it('uses `branchLabelMapping` from .backportrc.json', () => {
+        const config = spy.mock.calls[0][0];
+        expect(config.branchLabelMapping).toEqual({ myBackportByLabel: '$1' });
+      });
+
       it('runs backport with correct args', async () => {
         expect(spy).toHaveBeenCalledTimes(1);
         expect(spy).toHaveBeenCalledWith({
@@ -93,20 +103,19 @@ describe('initAction', () => {
         await initAction({ payload, inputs });
       });
 
-      it('runs backport with correct args', async () => {
-        expect(spy).toHaveBeenCalledTimes(1);
-        expect(spy).toHaveBeenCalledWith({
-          accessToken: 'myAccessToken',
-          assignees: ['sqren'],
-          branchLabelMapping: { myBackportByLabel: '$1' },
-          ci: true,
-          fork: false,
-          prTitle: 'myPrTitle',
-          pullNumber: 34,
-          targetPRLabels: ['myTargetPRLabels'],
-          upstream: 'backport-org/non-existing-repo',
-          username: 'sqren',
-        });
+      it('does not specify `targetBranches`', () => {
+        const config = spy.mock.calls[0][0];
+        expect(config.targetBranches).toBeUndefined();
+      });
+
+      it('does not specify `targetBranchChoices`', () => {
+        const config = spy.mock.calls[0][0];
+        expect(config.targetBranchChoices).toBeUndefined();
+      });
+
+      it('uses `branchLabelMapping` from input', () => {
+        const config = spy.mock.calls[0][0];
+        expect(config.branchLabelMapping).toEqual({ myBackportByLabel: '$1' });
       });
 
       it('posts status comment to Github', () => {
@@ -139,21 +148,14 @@ describe('initAction', () => {
       expect(config.targetBranches).toEqual(['7.8']);
     });
 
-    it('runs backport with correct args', async () => {
-      expect(spy).toHaveBeenCalledTimes(1);
-      expect(spy).toHaveBeenCalledWith({
-        accessToken: 'myAccessToken',
-        assignees: ['sqren'],
-        branchLabelMapping: { 'backport-to-(.*)': '$1' },
-        ci: true,
-        fork: false,
-        prTitle: 'myPrTitle',
-        pullNumber: 34,
-        targetPRLabels: ['myTargetPRLabels'],
-        upstream: 'backport-org/non-existing-repo',
-        username: 'sqren',
-        targetBranches: ['7.8'],
-      });
+    it('uses `branchLabelMapping` from input', () => {
+      const config = spy.mock.calls[0][0];
+      expect(config.branchLabelMapping).toEqual({ 'backport-to-(.*)': '$1' });
+    });
+
+    it('does not specify `targetBranchChoices`', () => {
+      const config = spy.mock.calls[0][0];
+      expect(config.targetBranchChoices).toBeUndefined();
     });
 
     it('posts status comment to Github', () => {
