@@ -12,7 +12,7 @@ Add the backport workflow to `.github/workflows/backport.yml`:
 name: Backport
 on:
   pull_request_target:
-    types: [closed, labeled, unlabeled, synchronize]
+    types: [opened, closed, labeled, unlabeled, synchronize]
 
 jobs:
   backport:

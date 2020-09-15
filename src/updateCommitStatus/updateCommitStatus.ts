@@ -20,5 +20,6 @@ export async function updateCommitStatus(
     sha: headSha,
     state: 'success',
     description: 'Will be backported to x & y',
+    context: 'Backport',
   });
 }
