@@ -2,8 +2,8 @@ import { EventPayloads } from '@octokit/webhooks';
 import { getTargetBranchForLabel, ConfigOptions } from 'backport';
 
 import got from 'got';
-import { Inputs } from '../index';
-import { consoleLog } from '../logger';
+import { Inputs } from './index';
+import { consoleLog } from './logger';
 
 async function getProjectConfig(
   payload: EventPayloads.WebhookPayloadPullRequest
@@ -27,6 +27,7 @@ export type RequiredOptions = {
   accessToken: string;
   upstream: string;
   pullNumber: number;
+  branchLabelMapping: NonNullable<ConfigOptions['branchLabelMapping']>;
 };
 
 export async function getBackportConfig({

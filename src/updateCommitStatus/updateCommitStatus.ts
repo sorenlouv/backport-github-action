@@ -1,25 +1,35 @@
 import { Octokit } from '@octokit/rest';
 import { EventPayloads } from '@octokit/webhooks';
 import { Inputs } from '../index';
+import { ConfigOptions, getTargetBranchForLabel } from 'backport';
+import { RequiredOptions } from '../getBackportConfig';
 
 export async function updateCommitStatus(
   payload: EventPayloads.WebhookPayloadPullRequest,
-  inputs: Inputs
+  inputs: Inputs,
+  config: ConfigOptions & RequiredOptions
 ) {
   const repoName = payload.repository.name;
   const repoOwner = payload.repository.owner.login;
   const octokit = new Octokit({ auth: inputs.accessToken });
-  const mergeCommitSha = payload.pull_request.merge_commit_sha;
   const headSha = payload.pull_request.head.sha;
 
-  console.log({ mergeCommitSha, headSha });
+  const targetBranches = payload.pull_request.labels
+    .map((label) => {
+      return getTargetBranchForLabel({
+        branchLabelMapping: config.branchLabelMapping,
+        label: label.name,
+      });
+    })
+    .filter((targetBranch) => !!targetBranch)
+    .join(', ');
 
   await octokit.repos.createCommitStatus({
     owner: repoOwner,
     repo: repoName,
     sha: headSha,
     state: 'success',
-    description: 'Will be backported to x & y',
+    description: `Will be backported to: ${targetBranches}`,
     context: 'Backport',
   });
 }
