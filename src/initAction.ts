@@ -3,7 +3,10 @@ import { Inputs } from '.';
 import * as backport from 'backport';
 import { addPullRequestComment } from './backport/addPullRequestComment';
 import { getBackportConfig } from './getBackportConfig';
-import { updateCommitStatus } from './updateCommitStatus/updateCommitStatus';
+import {
+  setFailedStatus,
+  setSuccessStatus,
+} from './updateCommitStatus/updateStatus';
 
 export async function initAction({
   inputs,
@@ -17,7 +20,12 @@ export async function initAction({
   }
 
   const username = payload.pull_request.user.login;
-  const config = await getBackportConfig({ payload, inputs, username });
+  let config;
+  try {
+    config = await getBackportConfig({ payload, inputs, username });
+  } catch (e) {
+    return setFailedStatus(payload, inputs, e.message);
+  }
 
   const isMerged = payload.pull_request.merged;
   if (!isMerged) {
@@ -27,7 +35,7 @@ export async function initAction({
       payload.action === 'labeled' ||
       payload.action === 'synchronize'
     ) {
-      return updateCommitStatus(payload, inputs, config);
+      return setSuccessStatus(payload, inputs, config);
     }
 
     throw new Error('PR not merged yet...');
