@@ -1,7 +1,7 @@
 import { Octokit } from '@octokit/rest';
 import { BackportResponse, ConfigOptions } from 'backport';
 import { RequiredOptions } from './getBackportConfig';
-import { consoleLog } from './logger';
+import { consoleLog } from '../logger';
 
 export async function addPullRequestComment({
   config,

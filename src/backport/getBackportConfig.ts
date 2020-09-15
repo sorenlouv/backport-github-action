@@ -2,8 +2,8 @@ import { EventPayloads } from '@octokit/webhooks';
 import { getTargetBranchForLabel, ConfigOptions } from 'backport';
 
 import got from 'got';
-import { Inputs } from './index';
-import { consoleLog } from './logger';
+import { Inputs } from '../index';
+import { consoleLog } from '../logger';
 
 async function getProjectConfig(
   payload: EventPayloads.WebhookPayloadPullRequest
@@ -31,12 +31,12 @@ export type RequiredOptions = {
 
 export async function getBackportConfig({
   payload,
-  username,
   inputs,
+  username,
 }: {
   payload: EventPayloads.WebhookPayloadPullRequest;
-  username: string;
   inputs: Inputs;
+  username: string;
 }): Promise<ConfigOptions & RequiredOptions> {
   const projectConfig = await getProjectConfig(payload);
   const config: ConfigOptions & { accessToken: string } = {
