@@ -4,7 +4,7 @@ import { Inputs } from '../index';
 import { ConfigOptions, getTargetBranchForLabel } from 'backport';
 import { RequiredOptions } from '../getBackportConfig';
 
-export async function setStatus(
+export async function setSuccessStatus(
   payload: EventPayloads.WebhookPayloadPullRequest,
   config: ConfigOptions & RequiredOptions
 ) {
@@ -22,18 +22,17 @@ export async function setStatus(
     .filter((targetBranch) => !!targetBranch)
     .join(', ');
 
-  const state = targetBranches.length > 0 ? 'success' : 'pending';
   const description =
     targetBranches.length > 0
       ? `This PR will be backported automatically to: ${targetBranches}`
       : 'This PR will not be backported since no labels matched';
 
-  console.log(`Setting status`, state, targetBranches, headSha);
+  console.log(`Setting success status`, targetBranches, headSha);
   await octokit.repos.createCommitStatus({
     owner: repoOwner,
     repo: repoName,
     sha: headSha,
-    state: state,
+    state: 'success',
     description,
     context: 'Backport',
   });
