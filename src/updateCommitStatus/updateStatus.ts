@@ -6,14 +6,13 @@ import { RequiredOptions } from '../getBackportConfig';
 
 export async function setSuccessStatus(
   payload: EventPayloads.WebhookPayloadPullRequest,
-  inputs: Inputs,
   config: ConfigOptions & RequiredOptions
 ) {
   const repoName = payload.repository.name;
   const repoOwner = payload.repository.owner.login;
   const headSha = payload.pull_request.head.sha;
 
-  const octokit = new Octokit({ auth: inputs.accessToken });
+  const octokit = new Octokit({ auth: config.accessToken });
 
   const targetBranches = payload.pull_request.labels
     .map((label) => {

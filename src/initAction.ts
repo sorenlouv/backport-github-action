@@ -24,24 +24,25 @@ export async function initAction({
   try {
     config = await getBackportConfig({ payload, inputs, username });
   } catch (e) {
-    return setFailedStatus(payload, inputs, e.message);
+    await setFailedStatus(payload, inputs, e.message);
+    throw e;
   }
 
   const isMerged = payload.pull_request.merged;
-  if (!isMerged) {
-    if (
-      payload.action === 'opened' ||
+  const isStatusAction =
+    !isMerged &&
+    (payload.action === 'opened' ||
       payload.action === 'unlabeled' ||
       payload.action === 'labeled' ||
-      payload.action === 'synchronize'
-    ) {
-      return setSuccessStatus(payload, inputs, config);
-    }
+      payload.action === 'synchronize');
 
-    throw new Error('PR not merged yet...');
+  const isBackportAction =
+    isMerged && (payload.action === 'closed' || payload.action === 'labeled');
+
+  if (isStatusAction) {
+    return setSuccessStatus(payload, config);
+  } else if (isBackportAction) {
+    const backportResponse = await backport.run(config);
+    await addPullRequestComment({ config, backportResponse });
   }
-
-  // backport
-  const backportResponse = await backport.run(config);
-  await addPullRequestComment({ config, backportResponse });
 }
