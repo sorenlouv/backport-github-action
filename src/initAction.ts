@@ -3,10 +3,7 @@ import { Inputs } from '.';
 import * as backport from 'backport';
 import { addPullRequestComment } from './backport/addPullRequestComment';
 import { getBackportConfig } from './getBackportConfig';
-import {
-  setFailedStatus,
-  setSuccessStatus,
-} from './updateCommitStatus/updateStatus';
+import { setErrorStatus, setStatus } from './updateCommitStatus/updateStatus';
 
 export async function initAction({
   inputs,
@@ -24,7 +21,7 @@ export async function initAction({
   try {
     config = await getBackportConfig({ payload, inputs, username });
   } catch (e) {
-    await setFailedStatus(payload, inputs, e.message);
+    await setErrorStatus(payload, inputs, e.message);
     throw e;
   }
 
@@ -40,7 +37,7 @@ export async function initAction({
     isMerged && (payload.action === 'closed' || payload.action === 'labeled');
 
   if (isStatusAction) {
-    return setSuccessStatus(payload, config);
+    return setStatus(payload, config);
   } else if (isBackportAction) {
     const backportResponse = await backport.run(config);
     await addPullRequestComment({ config, backportResponse });
