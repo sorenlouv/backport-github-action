@@ -6,7 +6,8 @@ import { RequiredOptions } from '../getBackportConfig';
 
 export async function setSuccessStatus(
   payload: EventPayloads.WebhookPayloadPullRequest,
-  config: ConfigOptions & RequiredOptions
+  config: ConfigOptions & RequiredOptions,
+  inputs: Inputs
 ) {
   const repoName = payload.repository.name;
   const repoOwner = payload.repository.owner.login;
@@ -19,23 +20,48 @@ export async function setSuccessStatus(
         label: label.name,
       });
     })
-    .filter((targetBranch) => !!targetBranch)
-    .join(', ');
+    .filter((targetBranch) => !!targetBranch);
 
-  const description =
-    targetBranches.length > 0
-      ? `This PR will be backported automatically to: ${targetBranches}`
-      : 'This PR will not be backported since no labels matched';
+  const maySkipBackportCheck =
+    inputs.skipBackportCheck ||
+    payload.pull_request.labels.some(
+      (label) => label.name === inputs.skipBackportCheckLabel
+    );
+
+  const state =
+    targetBranches.length > 0 || maySkipBackportCheck ? 'success' : 'failure';
+
+  const description = getDescription(
+    targetBranches,
+    maySkipBackportCheck,
+    inputs.skipBackportCheckLabel
+  );
 
   console.log(`Setting success status`, targetBranches, headSha);
   await octokit.repos.createCommitStatus({
     owner: repoOwner,
     repo: repoName,
     sha: headSha,
-    state: 'success',
+    state,
     description,
     context: 'Backport',
   });
+}
+
+function getDescription(
+  targetBranches: (string | undefined)[],
+  maySkipBackportCheck: boolean,
+  skipBackportCheckLabel: string
+) {
+  if (targetBranches.length > 0) {
+    return `This PR will be backported to: ${targetBranches.join(',')}`;
+  }
+
+  if (maySkipBackportCheck) {
+    return 'This PR will not be backported';
+  }
+
+  return `Please add a version label or add the "${skipBackportCheckLabel}" label`;
 }
 
 export async function setErrorStatus(

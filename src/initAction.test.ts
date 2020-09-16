@@ -35,7 +35,7 @@ describe('initAction', () => {
       beforeEach(async () => {
         const inputs = {
           accessToken: 'myAccessToken',
-          backportByLabel: 'myBackportByLabel',
+          backportLabelPattern: 'mybackportLabelPattern',
           prTitle: 'myPrTitle',
           targetPRLabels: 'myTargetPRLabels',
         };
@@ -56,7 +56,9 @@ describe('initAction', () => {
 
       it('uses `branchLabelMapping` from .backportrc.json', () => {
         const config = spy.mock.calls[0][0];
-        expect(config.branchLabelMapping).toEqual({ myBackportByLabel: '$1' });
+        expect(config.branchLabelMapping).toEqual({
+          mybackportLabelPattern: '$1',
+        });
       });
 
       it('runs backport with correct args', async () => {
@@ -64,7 +66,7 @@ describe('initAction', () => {
         expect(spy).toHaveBeenCalledWith({
           accessToken: 'myAccessToken',
           assignees: ['sqren'],
-          branchLabelMapping: { myBackportByLabel: '$1' },
+          branchLabelMapping: { mybackportLabelPattern: '$1' },
           ci: true,
           fork: false,
           prTitle: 'myPrTitle',
@@ -89,7 +91,7 @@ describe('initAction', () => {
       beforeEach(async () => {
         const inputs = {
           accessToken: 'myAccessToken',
-          backportByLabel: 'myBackportByLabel',
+          backportLabelPattern: 'mybackportLabelPattern',
           prTitle: 'myPrTitle',
           targetPRLabels: 'myTargetPRLabels',
         };
@@ -115,7 +117,9 @@ describe('initAction', () => {
 
       it('uses `branchLabelMapping` from input', () => {
         const config = spy.mock.calls[0][0];
-        expect(config.branchLabelMapping).toEqual({ myBackportByLabel: '$1' });
+        expect(config.branchLabelMapping).toEqual({
+          mybackportLabelPattern: '$1',
+        });
       });
 
       it('posts status comment to Github', () => {
@@ -128,7 +132,7 @@ describe('initAction', () => {
     beforeEach(async () => {
       const inputs = {
         accessToken: 'myAccessToken',
-        backportByLabel: 'backport-to-(.*)',
+        backportLabelPattern: 'backport-to-(.*)',
         prTitle: 'myPrTitle',
         targetPRLabels: 'myTargetPRLabels',
       };

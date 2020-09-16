@@ -7,9 +7,11 @@ import { consoleLog } from './logger';
 
 export type Inputs = {
   accessToken: string;
-  backportByLabel?: string;
+  backportLabelPattern?: string;
   prTitle?: string;
   targetPRLabels?: string;
+  skipBackportCheckLabel: string;
+  skipBackportCheck: boolean;
 };
 
 async function init() {
@@ -23,7 +25,7 @@ async function init() {
 
   // Inputs
   const accessToken = core.getInput('access_token', { required: true });
-  const backportByLabel = core.getInput('backport_by_label', {
+  const backportLabelPattern = core.getInput('backport_label_pattern', {
     required: false,
   });
   const prTitle = core.getInput('pr_title', {
@@ -32,6 +34,14 @@ async function init() {
   const targetPRLabels = core.getInput('target_pr_labels', {
     required: false,
   });
+  const skipBackportCheckLabel = core.getInput('skip_backport_check_label', {
+    required: false,
+  });
+
+  const skipBackportCheck = core.getInput('skip_backport_check_label', {
+    required: false,
+  });
+
   // TODO:
   // const backportByComment = core.getInput('backport_by_comment', {
   //   required: false,
@@ -39,9 +49,11 @@ async function init() {
 
   const inputs: Inputs = {
     accessToken,
-    backportByLabel,
+    backportLabelPattern,
     prTitle,
     targetPRLabels,
+    skipBackportCheckLabel,
+    skipBackportCheck: skipBackportCheck === 'true',
   };
 
   await initAction({ inputs, payload });

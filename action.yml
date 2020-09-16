@@ -5,8 +5,8 @@ inputs:
   access_token:
     description: 'GITHUB_TOKEN or a `repo` scoped Personal Access Token'
     default: ${{ github.token }}
-  backport_by_label:
-    description: Backport PR by adding a label
+  backport_label_pattern:
+    description: Backport to branches that matches the label pattern.
     required: false
   pr_title:
     description: Title for the backport PR
@@ -14,6 +14,14 @@ inputs:
   target_pr_labels:
     description: Comma-separated list of labels that will be added to the backport PR.
     required: false
+  skip_backport_check_label:
+    description: Disable backport check by adding a label
+    required: false
+    default: backport:skip
+  skip_backport_check:
+    description: Disable backport check entirely
+    required: false
+    default: false
 runs:
   using: 'node12'
   main: 'dist/index.js'

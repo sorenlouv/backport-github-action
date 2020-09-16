@@ -52,9 +52,9 @@ export async function getBackportConfig({
     fork: false,
   };
 
-  if (inputs.backportByLabel) {
+  if (inputs.backportLabelPattern) {
     config.branchLabelMapping = {
-      [inputs.backportByLabel]: '$1',
+      [inputs.backportLabelPattern]: '$1',
     };
   }
 

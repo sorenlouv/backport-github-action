@@ -40,7 +40,7 @@ export async function initAction({
     isMerged && (payload.action === 'closed' || payload.action === 'labeled');
 
   if (isStatusAction) {
-    return setSuccessStatus(payload, config);
+    return setSuccessStatus(payload, config, inputs);
   } else if (isBackportAction) {
     const backportResponse = await backport.run(config);
     await addPullRequestComment({ config, backportResponse });

@@ -29,7 +29,7 @@ jobs:
           # Required
           # Backport PR by adding a label
           # Example: PRs labeled with "backport-to-staging" will be backported to "staging"
-          backport_by_label: '^backport-to-(.*)$'
+          backport_label_pattern: '^backport-to-(.*)$'
 
           # Optional
           # Title for the backport PR
@@ -39,6 +39,14 @@ jobs:
           # Optional
           # Comma separated list of labels that will be added to the backport PR.
           # target_pr_labels: 'backport'
+
+          # Optional
+          # If no labels match the `backport_label_pattern` the backport check will fail. To bypass this for a single PR you can add a label to indicate the PR should not be backported
+          # skip_backport_check_label: 'backport:skip'
+
+          # Optional
+          # If no labels match the `backport_label_pattern` the backport check will fail. Enabling this will bypass the check for all PRs
+          # skip_backport_check: false
 ```
 
 ## Backport CLI (optional)
