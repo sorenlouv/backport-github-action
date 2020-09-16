@@ -5,12 +5,14 @@ export const getLabeledPRPayload = ({
   repoName,
   username,
   label,
+  isMerged,
   defaultBranch = 'master',
 }: {
   repoOwner: string;
   repoName: string;
   username: string;
   label: string;
+  isMerged: boolean;
   defaultBranch?: string;
 }): EventPayloads.WebhookPayloadPullRequest => {
   return {
@@ -21,7 +23,7 @@ export const getLabeledPRPayload = ({
       //@ts-expect-error
       description: '',
       id: 2344596373,
-      name: '' + label + '',
+      name: label,
       node_id: 'MDU6TGFiZWwyMzQ0NTk2Mzcz',
       url:
         'https://api.github.com/repos/' +
@@ -29,8 +31,7 @@ export const getLabeledPRPayload = ({
         '/' +
         repoName +
         '/labels/' +
-        label +
-        '',
+        label,
     },
     number: 34,
     organization: {
@@ -810,7 +811,7 @@ export const getLabeledPRPayload = ({
           //@ts-expect-error
           description: '',
           id: 2344596373,
-          name: '' + label + '',
+          name: label,
           node_id: 'MDU6TGFiZWwyMzQ0NTk2Mzcz',
           url:
             'https://api.github.com/repos/' +
@@ -818,8 +819,7 @@ export const getLabeledPRPayload = ({
             '/' +
             repoName +
             '/labels/' +
-            label +
-            '',
+            label,
         },
         {
           color: 'c5c2fc',
@@ -842,7 +842,7 @@ export const getLabeledPRPayload = ({
       merge_commit_sha: '629d7d9d3e5c74ae2308bbc604cb42cc337cef95',
       mergeable: null,
       mergeable_state: 'unknown',
-      merged: true,
+      merged: isMerged,
       //@ts-expect-error
       merged_at: '2020-09-12T21:58:57Z',
       //@ts-expect-error

@@ -3,6 +3,7 @@ import { EventPayloads } from '@octokit/webhooks';
 import { Inputs } from '../index';
 import { ConfigOptions, getTargetBranchForLabel } from 'backport';
 import { RequiredOptions } from '../getBackportConfig';
+import { consoleLog } from '../logger';
 
 export async function setSuccessStatus(
   payload: EventPayloads.WebhookPayloadPullRequest,
@@ -37,7 +38,7 @@ export async function setSuccessStatus(
     inputs.skipBackportCheckLabel
   );
 
-  console.log(`Setting success status`, targetBranches, headSha);
+  consoleLog(`Setting success status`, targetBranches, headSha);
   await octokit.repos.createCommitStatus({
     owner: repoOwner,
     repo: repoName,
@@ -75,7 +76,7 @@ export async function setErrorStatus(
 
   const octokit = new Octokit({ auth: inputs.accessToken });
 
-  console.log(`Setting error status: ${errorMessage}`);
+  consoleLog(`Setting error status: ${errorMessage}`);
   await octokit.repos.createCommitStatus({
     owner: repoOwner,
     repo: repoName,

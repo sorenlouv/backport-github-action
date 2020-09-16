@@ -4,13 +4,14 @@ import { initAction } from './initAction';
 import * as backport from 'backport';
 import * as logger from './logger';
 import nock from 'nock';
+import { Inputs } from '.';
 
 describe('initAction', () => {
-  let spy: jest.SpyInstance;
-  let postCommentMock: nock.Scope;
+  let backportRunSpy: jest.SpyInstance;
+  let postCommentCalls: unknown[];
 
   beforeEach(() => {
-    spy = jest.spyOn(backport, 'run').mockResolvedValueOnce({
+    backportRunSpy = jest.spyOn(backport, 'run').mockResolvedValueOnce({
       results: [
         { success: true, pullRequestUrl: 'my url', targetBranch: '7.x' },
       ],
@@ -21,23 +22,27 @@ describe('initAction', () => {
     jest.spyOn(logger, 'consoleLog').mockReturnValue();
 
     // mock comment posting
-    postCommentMock = nock('https://api.github.com')
+    const postCommentMock = nock('https://api.github.com')
       .post(/^\/repos\/.*\/.*\/issues\/\d+\/comments$/)
       .reply(200);
+
+    postCommentCalls = getNockCallsForScope(postCommentMock);
   });
 
   afterEach(() => {
-    spy.mockClear();
+    backportRunSpy.mockClear();
   });
 
   describe('when a PR is merged', () => {
     describe('and .backportrc.json exists', () => {
       beforeEach(async () => {
-        const inputs = {
+        const inputs: Inputs = {
           accessToken: 'myAccessToken',
           backportLabelPattern: 'mybackportLabelPattern',
           prTitle: 'myPrTitle',
           targetPRLabels: 'myTargetPRLabels',
+          skipBackportCheck: false,
+          skipBackportCheckLabel: 'backport:skip',
         };
 
         const payload = getClosedPRPayload({
@@ -50,20 +55,20 @@ describe('initAction', () => {
       });
 
       it('does not specify `targetBranches`', () => {
-        const config = spy.mock.calls[0][0];
+        const config = backportRunSpy.mock.calls[0][0];
         expect(config.targetBranches).toBeUndefined();
       });
 
       it('uses `branchLabelMapping` from .backportrc.json', () => {
-        const config = spy.mock.calls[0][0];
+        const config = backportRunSpy.mock.calls[0][0];
         expect(config.branchLabelMapping).toEqual({
           mybackportLabelPattern: '$1',
         });
       });
 
       it('runs backport with correct args', async () => {
-        expect(spy).toHaveBeenCalledTimes(1);
-        expect(spy).toHaveBeenCalledWith({
+        expect(backportRunSpy).toHaveBeenCalledTimes(1);
+        expect(backportRunSpy).toHaveBeenCalledWith({
           accessToken: 'myAccessToken',
           assignees: ['sqren'],
           branchLabelMapping: { mybackportLabelPattern: '$1' },
@@ -82,18 +87,32 @@ describe('initAction', () => {
         });
       });
 
-      it('posts status comment to Github', () => {
-        postCommentMock.done();
+      it('posts comment to Github', () => {
+        expect(postCommentCalls).toMatchInlineSnapshot(`
+          Array [
+            Object {
+              "body": Object {
+                "body": "## 💚 Backport successful
+          The PR was backported to the following branches:
+           - ✅ [7.x](my url)
+          ",
+              },
+              "url": "https://api.github.com/repos/backport-org/backport-e2e/issues/34/comments",
+            },
+          ]
+        `);
       });
     });
 
     describe('and .backportrc.json does not exist', () => {
       beforeEach(async () => {
-        const inputs = {
+        const inputs: Inputs = {
           accessToken: 'myAccessToken',
           backportLabelPattern: 'mybackportLabelPattern',
           prTitle: 'myPrTitle',
           targetPRLabels: 'myTargetPRLabels',
+          skipBackportCheck: false,
+          skipBackportCheckLabel: 'backport:skip',
         };
 
         const payload = getClosedPRPayload({
@@ -106,35 +125,49 @@ describe('initAction', () => {
       });
 
       it('does not specify `targetBranches`', () => {
-        const config = spy.mock.calls[0][0];
+        const config = backportRunSpy.mock.calls[0][0];
         expect(config.targetBranches).toBeUndefined();
       });
 
       it('does not specify `targetBranchChoices`', () => {
-        const config = spy.mock.calls[0][0];
+        const config = backportRunSpy.mock.calls[0][0];
         expect(config.targetBranchChoices).toBeUndefined();
       });
 
       it('uses `branchLabelMapping` from input', () => {
-        const config = spy.mock.calls[0][0];
+        const config = backportRunSpy.mock.calls[0][0];
         expect(config.branchLabelMapping).toEqual({
           mybackportLabelPattern: '$1',
         });
       });
 
-      it('posts status comment to Github', () => {
-        postCommentMock.done();
+      it('posts comment to Github', () => {
+        expect(postCommentCalls).toMatchInlineSnapshot(`
+          Array [
+            Object {
+              "body": Object {
+                "body": "## 💚 Backport successful
+          The PR was backported to the following branches:
+           - ✅ [7.x](my url)
+          ",
+              },
+              "url": "https://api.github.com/repos/backport-org/non-existing-repo/issues/34/comments",
+            },
+          ]
+        `);
       });
     });
   });
 
-  describe('when a label is added to an open PR', () => {
+  describe('when a label is added to a merged PR', () => {
     beforeEach(async () => {
-      const inputs = {
+      const inputs: Inputs = {
         accessToken: 'myAccessToken',
         backportLabelPattern: 'backport-to-(.*)',
         prTitle: 'myPrTitle',
         targetPRLabels: 'myTargetPRLabels',
+        skipBackportCheck: false,
+        skipBackportCheckLabel: 'backport:skip',
       };
 
       const payload = getLabeledPRPayload({
@@ -142,34 +175,103 @@ describe('initAction', () => {
         repoName: 'non-existing-repo',
         username: 'sqren',
         label: 'backport-to-7.8',
+        isMerged: true,
       });
 
       await initAction({ payload, inputs });
     });
 
     it('backports to 7.8', () => {
-      const config = spy.mock.calls[0][0];
+      const config = backportRunSpy.mock.calls[0][0];
       expect(config.targetBranches).toEqual(['7.8']);
     });
 
     it('uses `branchLabelMapping` from input', () => {
-      const config = spy.mock.calls[0][0];
+      const config = backportRunSpy.mock.calls[0][0];
       expect(config.branchLabelMapping).toEqual({ 'backport-to-(.*)': '$1' });
     });
 
     it('does not specify `targetBranchChoices`', () => {
-      const config = spy.mock.calls[0][0];
+      const config = backportRunSpy.mock.calls[0][0];
       expect(config.targetBranchChoices).toBeUndefined();
     });
 
-    it('posts status comment to Github', () => {
-      postCommentMock.done();
+    it('posts comment to Github', () => {
+      expect(postCommentCalls).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "body": Object {
+              "body": "## 💚 Backport successful
+        The PR was backported to the following branches:
+         - ✅ [7.x](my url)
+        ",
+            },
+            "url": "https://api.github.com/repos/backport-org/non-existing-repo/issues/34/comments",
+          },
+        ]
+      `);
     });
   });
 
-  // describe('when a label is added to a merged PR', () => {
-  //   it('something', () => {
-  //     expect(true).toBe(true);
-  //   });
-  // });
+  describe('when a label is added to an open PR', () => {
+    let updateStatusMock: nock.Scope;
+    let calls: unknown[];
+    beforeEach(async () => {
+      // mock comment posting
+      updateStatusMock = nock('https://api.github.com')
+        .post(/^\/repos\/.*\/.*\/statuses\/.*$/)
+        .reply(200);
+
+      const inputs: Inputs = {
+        accessToken: 'myAccessToken',
+        backportLabelPattern: 'backport-to-(.*)',
+        prTitle: 'myPrTitle',
+        targetPRLabels: 'myTargetPRLabels',
+        skipBackportCheck: false,
+        skipBackportCheckLabel: 'backport:skip',
+      };
+
+      const payload = getLabeledPRPayload({
+        repoOwner: 'backport-org',
+        repoName: 'non-existing-repo',
+        username: 'sqren',
+        label: 'backport-to-7.8',
+        isMerged: false,
+      });
+
+      calls = getNockCallsForScope(updateStatusMock);
+      await initAction({ payload, inputs });
+    });
+
+    it('does not backport', () => {
+      expect(backportRunSpy).not.toHaveBeenCalled();
+    });
+
+    it('updates commit status', () => {
+      expect(calls).toEqual([
+        {
+          url:
+            'https://api.github.com/repos/backport-org/non-existing-repo/statuses/cffcf17dd96d27854bf99a54d6605f56301b065e',
+          body: {
+            context: 'Backport',
+            description: 'This PR will be backported to: 7.8,7.x',
+            state: 'success',
+          },
+        },
+      ]);
+      updateStatusMock.done();
+    });
+
+    it('does not post comment to Github', () => {
+      expect(postCommentCalls).toEqual([]);
+    });
+  });
 });
+
+export function getNockCallsForScope(scope: nock.Scope) {
+  const calls: unknown[] = [];
+  scope.on('request', (req, interceptor, body) => {
+    calls.push({ url: req.options.href, body: JSON.parse(body) });
+  });
+  return calls;
+}
