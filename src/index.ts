@@ -15,6 +15,7 @@ async function init() {
   const accessToken = core.getInput('github_token', { required: true });
   const commitUser = core.getInput('commit_user', { required: false });
   const commitEmail = core.getInput('commit_email', { required: false });
+  const username = core.getInput('username', { required: false });
 
   await exec(`git config --global user.name "${commitUser}"`);
   await exec(`git config --global user.email "${commitEmail}"`);
@@ -22,6 +23,7 @@ async function init() {
   await backportRun({
     repoOwner: repo.owner,
     repoName: repo.repo,
+    username,
     accessToken,
     ci: true,
     pullNumber: pullRequest.number,
