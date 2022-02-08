@@ -43,4 +43,8 @@ jobs:
           github_token: ${{secrets.GITHUB_TOKEN}}
           commit_user: <YOUR_USERNAME>
           commit_email: <YOUR_EMAIL>
+          
+      - name: Show log in case we failed
+        run: cat /home/runner/.backport/backport.log
+          
 ```
