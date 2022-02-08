@@ -1,29 +1,17 @@
 name: 'Backport Action'
-author: Søren Louv <sorenlouv@gmail.com>
 description: 'Backport merged pull requests to other branches via labels'
 inputs:
-  access_token:
-    description: 'GITHUB_TOKEN or a `repo` scoped Personal Access Token'
-    default: ${{ github.token }}
-  backport_label_pattern:
-    description: Backport to branches that matches the label pattern.
-    required: false
-  pr_title:
-    description: Title for the backport PR
-    required: false
-  target_pr_labels:
-    description: Comma-separated list of labels that will be added to the backport PR.
-    required: false
-  skip_backport_check_label:
-    description: Disable backport check by adding a label
-    required: false
-    default: backport:skip
-  skip_backport_check:
-    description: Disable backport check entirely
-    required: false
-    default: false
+  github_token:
+    description: The access token that will be used to create the backport pull requests and perform other operations
+    required: true
+  commit_user:
+    description: The username that will be used to commit the cherry-picks for the backport branches
+    required: true
+  commit_email:
+    description: The e-mail address that will be used to commit the cherry-picks for the backport branches
+    required: true
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
 branding:
   icon: git-branch

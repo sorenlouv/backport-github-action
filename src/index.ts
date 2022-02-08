@@ -1,65 +1,35 @@
 import * as core from '@actions/core';
-import { context } from '@actions/github';
-import { EventPayloads } from '@octokit/webhooks';
-import { initAction } from './initAction';
 import { exec } from '@actions/exec';
-import { consoleLog } from './logger';
-
-export type Inputs = {
-  accessToken: string;
-  backportLabelPattern?: string;
-  prTitle?: string;
-  targetPRLabels?: string;
-  skipBackportCheckLabel: string;
-  skipBackportCheck: boolean;
-};
+import { context } from '@actions/github';
+import { backportRun } from 'backport';
 
 async function init() {
-  const payload = context.payload as EventPayloads.WebhookPayloadPullRequest;
-  const { actor } = context;
+  const { payload, repo } = context;
 
-  await exec(`git config --global user.name "${actor}"`);
-  await exec(
-    `git config --global user.email "github-action-${actor}@users.noreply.github.com"`
-  );
+  if (!payload.pull_request) {
+    throw Error('Only pull_request events are supported.');
+  }
 
-  // Inputs
-  const accessToken = core.getInput('access_token', { required: true });
-  const backportLabelPattern = core.getInput('backport_label_pattern', {
-    required: false,
-  });
-  const prTitle = core.getInput('pr_title', {
-    required: false,
-  });
-  const targetPRLabels = core.getInput('target_pr_labels', {
-    required: false,
-  });
-  const skipBackportCheckLabel = core.getInput('skip_backport_check_label', {
-    required: false,
-  });
+  const pullRequest = payload.pull_request;
+  const prAuthor: string = pullRequest.user.login;
+  const accessToken = core.getInput('github_token', { required: true });
+  const commitUser = core.getInput('commit_user', { required: false });
+  const commitEmail = core.getInput('commit_email', { required: false });
 
-  const skipBackportCheck = core.getInput('skip_backport_check_label', {
-    required: false,
-  });
+  await exec(`git config --global user.name "${commitUser}"`);
+  await exec(`git config --global user.email "${commitEmail}"`);
 
-  // TODO:
-  // const backportByComment = core.getInput('backport_by_comment', {
-  //   required: false,
-  // });
-
-  const inputs: Inputs = {
+  await backportRun({
+    repoOwner: repo.owner,
+    repoName: repo.repo,
     accessToken,
-    backportLabelPattern,
-    prTitle,
-    targetPRLabels,
-    skipBackportCheckLabel,
-    skipBackportCheck: skipBackportCheck === 'true',
-  };
-
-  await initAction({ inputs, payload });
+    ci: true,
+    pullNumber: pullRequest.number,
+    assignees: [prAuthor],
+  });
 }
 
 init().catch((error) => {
-  consoleLog('An error occurred', error);
+  console.error('An error occurred', error);
   core.setFailed(error.message);
 });
