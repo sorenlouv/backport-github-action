@@ -30,15 +30,15 @@ jobs:
       - name: Checkout Actions
         uses: actions/checkout@v2
         with:
-          repository: 'elastic/kibana-github-actions'
+          repository: 'sqren/backport-github-action'
           ref: main
-          path: ./actions
+          path: ./backport-github-action
 
       - name: Install Actions
-        run: npm install --production --prefix ./actions
+        run: npm install --production --prefix ./backport-github-action
 
       - name: Run Backport
-        uses: ./actions/backport
+        uses: ./backport-github-action
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
           commit_user: <YOUR_USERNAME>
