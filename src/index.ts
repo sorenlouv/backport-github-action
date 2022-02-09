@@ -29,7 +29,7 @@ async function init() {
   await backportRun({
     repoOwner: repo.owner,
     repoName: repo.repo,
-    username: username ?? repo.owner,
+    username: username !== '' ? username : repo.owner,
     accessToken,
     ci: true,
     pullNumber: pullRequest.number,
