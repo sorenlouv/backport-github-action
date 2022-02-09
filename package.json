@@ -1,12 +1,14 @@
 {
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@actions/core": "^1.6.0",
     "@actions/exec": "^1.1.0",
     "@actions/github": "^5.0.0",
-    "backport": "^6.3.0-beta-4"
+    "backport": "^6.3.0-beta-4",
+    "husky": "^7.0.4"
   },
   "devDependencies": {
     "@types/node": "^17.0.16",

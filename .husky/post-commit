@@ -1,0 +1,14 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Hook: running post-commit"
+
+# Add
+if [ -e .missing-tsc-build ]
+    then
+    rm .missing-tsc-build
+    git add dist
+    git commit --amend -C HEAD --no-verify
+    echo "Compiled changes committed"
+fi
+exit

@@ -1,0 +1,14 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Hook: running pre-commit"
+yarn build
+
+#
+if git diff --quiet HEAD $REF -- dist; then
+    echo "Nothing to compile"
+else
+    touch .missing-tsc-build
+    echo "Compiled changes"
+fi
+

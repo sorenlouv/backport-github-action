@@ -6,9 +6,12 @@ inputs:
     required: true
   commit_user:
     description: The username that will be used to commit the cherry-picks for the backport branches
-    required: true
+    required: false
   commit_email:
     description: The e-mail address that will be used to commit the cherry-picks for the backport branches
+    required: false
+  username:
+    description: The username of the repo where the backport branch will be pushed to. Defaults to the user of the github token (access token)
     required: true
 runs:
   using: 'node16'
