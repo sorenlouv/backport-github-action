@@ -23,46 +23,26 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const exec_1 = require("@actions/exec");
 const github_1 = require("@actions/github");
-const graphql_1 = require("@octokit/graphql");
 const backport_1 = require("backport");
 async function init() {
     const { payload, repo } = github_1.context;
-    const accessToken = core.getInput('github_token', { required: true });
-    const { repository } = await (0, graphql_1.graphql)(`
-      query getAuthor {
-        viewer {
-          name
-          login
-          isEmployee
-          repositories(first: 10) {
-            edges {
-              node {
-                name
-              }
-            }
-          }
-        }
-      }
-    `, {
-        headers: {
-            authorization: `token ${accessToken}`,
-        },
-    });
-    console.log('repo', JSON.stringify(repository));
     if (!payload.pull_request) {
         throw Error('Only pull_request events are supported.');
     }
+    console.log('1');
     const pullRequest = payload.pull_request;
     const prAuthor = pullRequest.user.login;
     const commitUser = core.getInput('commit_user', { required: false });
     const commitEmail = core.getInput('commit_email', { required: false });
+    const accessToken = core.getInput('github_token', { required: true });
     const username = core.getInput('username', { required: false });
+    console.log({ commitUser, commitEmail, username, repo });
     await (0, exec_1.exec)(`git config --global user.name "${commitUser}"`);
     await (0, exec_1.exec)(`git config --global user.email "${commitEmail}"`);
     await (0, backport_1.backportRun)({
         repoOwner: repo.owner,
         repoName: repo.repo,
-        username,
+        username: username ?? repo.owner,
         accessToken,
         ci: true,
         pullNumber: pullRequest.number,
