@@ -23,8 +23,12 @@ const core = __importStar(require("@actions/core"));
 const exec_1 = require("@actions/exec");
 const github_1 = require("@actions/github");
 const backport_1 = require("backport");
+const { Octokit } = require('@octokit/action');
 async function init() {
     const { payload, repo } = github_1.context;
+    const octokit = new Octokit();
+    const res = await octokit.request('GET /user');
+    console.log(res);
     if (!payload.pull_request) {
         throw Error('Only pull_request events are supported.');
     }

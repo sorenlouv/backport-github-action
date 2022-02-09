@@ -2,9 +2,14 @@ import * as core from '@actions/core';
 import { exec } from '@actions/exec';
 import { context } from '@actions/github';
 import { backportRun } from 'backport';
+const { Octokit } = require('@octokit/action');
 
 async function init() {
   const { payload, repo } = context;
+
+  const octokit = new Octokit();
+  const res = await octokit.request('GET /user');
+  console.log(res);
 
   if (!payload.pull_request) {
     throw Error('Only pull_request events are supported.');
