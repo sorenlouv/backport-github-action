@@ -29,7 +29,7 @@ async function init() {
     const { payload, repo } = github_1.context;
     const octokit = new action_1.Octokit();
     const res = await octokit.request('GET /user');
-    console.log(res);
+    console.log('hey', res);
     if (!payload.pull_request) {
         throw Error('Only pull_request events are supported.');
     }

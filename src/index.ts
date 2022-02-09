@@ -10,7 +10,7 @@ async function init() {
 
   const octokit = new Octokit();
   const res = await octokit.request('GET /user');
-  console.log(res);
+  console.log('hey', res);
 
   if (!payload.pull_request) {
     throw Error('Only pull_request events are supported.');
