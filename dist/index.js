@@ -42,7 +42,9 @@ async function init() {
     await (0, backport_1.backportRun)({
         repoOwner: repo.owner,
         repoName: repo.repo,
-        username: username !== '' ? username : repo.owner,
+        // username: username !== '' ? username : repo.owner,
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        username: username ?? repo.owner,
         accessToken,
         ci: true,
         pullNumber: pullRequest.number,

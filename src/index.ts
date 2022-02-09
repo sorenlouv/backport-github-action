@@ -17,9 +17,7 @@ async function init() {
   const commitUser = core.getInput('commit_user', { required: false });
   const commitEmail = core.getInput('commit_email', { required: false });
   const accessToken = core.getInput('github_token', { required: true });
-  const username = core.getInput('username', { required: false }) as
-    | string
-    | undefined;
+  const username = core.getInput('username', { required: false });
 
   console.log({ commitUser, commitEmail, username, repo });
 
@@ -29,7 +27,9 @@ async function init() {
   await backportRun({
     repoOwner: repo.owner,
     repoName: repo.repo,
-    username: username !== '' ? username : repo.owner,
+    // username: username !== '' ? username : repo.owner,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    username: username ?? repo.owner,
     accessToken,
     ci: true,
     pullNumber: pullRequest.number,
