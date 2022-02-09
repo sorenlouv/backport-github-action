@@ -1196,10 +1196,10 @@ babel-preset-jest@^27.5.1:
     babel-plugin-jest-hoist "^27.5.1"
     babel-preset-current-node-syntax "^1.0.0"
 
-backport@^6.3.0-beta-4:
-  version "6.3.0-beta-4"
-  resolved "https://registry.yarnpkg.com/backport/-/backport-6.3.0-beta-4.tgz#16c6627ab2b179e62f6c643539d4ac169c41fd79"
-  integrity sha512-QSAu9pYz1sa5IAhLWaOzXltXxoubtcPHNnvS6XTllpjvavWiWbTMtWWOpglG21u+rOmrmyAvhiYjZ7dey4DNGg==
+backport@^6.3.0-beta-5:
+  version "6.3.0-beta-5"
+  resolved "https://registry.yarnpkg.com/backport/-/backport-6.3.0-beta-5.tgz#97d0a370eb343889490dec3bd51a61a82f789251"
+  integrity sha512-CnKxk4fCmR3l8mAVUONi0is8qzI/yzb0fJfBI8O7uGrZrPHOi7zNIOmbkhskT8p/1pLZm0Z5op4lBqedN/ez3w==
   dependencies:
     "@octokit/rest" "^18.12.0"
     axios "^0.25.0"
@@ -1218,6 +1218,7 @@ backport@^6.3.0-beta-4:
     utility-types "^3.10.0"
     winston "^3.5.1"
     yargs "^17.3.1"
+    yargs-parser "^21.0.0"
 
 balanced-match@^1.0.0:
   version "1.0.2"
