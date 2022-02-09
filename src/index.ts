@@ -1,8 +1,9 @@
+/* eslint-disable no-console */
 import * as core from '@actions/core';
 import { exec } from '@actions/exec';
 import { context } from '@actions/github';
+import { Octokit } from '@octokit/action';
 import { backportRun } from 'backport';
-const { Octokit } = require('@octokit/action');
 
 async function init() {
   const { payload, repo } = context;

@@ -19,14 +19,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+/* eslint-disable no-console */
 const core = __importStar(require("@actions/core"));
 const exec_1 = require("@actions/exec");
 const github_1 = require("@actions/github");
+const action_1 = require("@octokit/action");
 const backport_1 = require("backport");
-const { Octokit } = require('@octokit/action');
 async function init() {
     const { payload, repo } = github_1.context;
-    const octokit = new Octokit();
+    const octokit = new action_1.Octokit();
     const res = await octokit.request('GET /user');
     console.log(res);
     if (!payload.pull_request) {
