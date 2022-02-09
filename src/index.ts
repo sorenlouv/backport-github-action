@@ -11,7 +11,6 @@ async function init() {
     throw Error('Only pull_request events are supported.');
   }
 
-  console.log('1');
   const pullRequest = payload.pull_request;
   const prAuthor: string = pullRequest.user.login;
   const commitUser = core.getInput('commit_user', { required: false });
