@@ -23,15 +23,37 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const exec_1 = require("@actions/exec");
 const github_1 = require("@actions/github");
+const graphql_1 = require("@octokit/graphql");
 const backport_1 = require("backport");
 async function init() {
     const { payload, repo } = github_1.context;
+    const accessToken = core.getInput('github_token', { required: true });
+    const { repository } = await (0, graphql_1.graphql)(`
+      query getAuthor {
+        viewer {
+          name
+          login
+          isEmployee
+          repositories(first: 10) {
+            edges {
+              node {
+                name
+              }
+            }
+          }
+        }
+      }
+    `, {
+        headers: {
+            authorization: `token ${accessToken}`,
+        },
+    });
+    console.log('repo', JSON.stringify(repository));
     if (!payload.pull_request) {
         throw Error('Only pull_request events are supported.');
     }
     const pullRequest = payload.pull_request;
     const prAuthor = pullRequest.user.login;
-    const accessToken = core.getInput('github_token', { required: true });
     const commitUser = core.getInput('commit_user', { required: false });
     const commitEmail = core.getInput('commit_email', { required: false });
     const username = core.getInput('username', { required: false });

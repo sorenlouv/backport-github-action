@@ -9,6 +9,7 @@
     "@actions/exec": "^1.1.0",
     "@actions/github": "^5.0.0",
     "@octokit/action": "^3.18.0",
+    "@octokit/graphql": "^4.8.0",
     "backport": "^6.3.0-beta-5",
     "husky": "^7.0.4"
   },
