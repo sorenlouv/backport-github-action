@@ -23,13 +23,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const exec_1 = require("@actions/exec");
 const github_1 = require("@actions/github");
-const action_1 = require("@octokit/action");
 const backport_1 = require("backport");
 async function init() {
     const { payload, repo } = github_1.context;
-    const octokit = new action_1.Octokit();
-    const res = await octokit.request('GET /user');
-    console.log('hey', res);
     if (!payload.pull_request) {
         throw Error('Only pull_request events are supported.');
     }
