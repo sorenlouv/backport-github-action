@@ -44,7 +44,7 @@ jobs:
           commit_user: <YOUR_USERNAME>
           commit_email: <YOUR_EMAIL>
           
-      - name: Show log in case we failed
+      - name: Backport log
         run: cat /home/runner/.backport/backport.log
           
 ```
