@@ -11,14 +11,26 @@ async function init() {
     throw Error('Only pull_request events are supported.');
   }
 
-  const pullRequest = payload.pull_request;
-  const prAuthor: string = pullRequest.user.login;
+  // required params
+  const accessToken = core.getInput('github_token', { required: true });
+
+  // optional params
   const commitUser = core.getInput('commit_user', { required: false });
   const commitEmail = core.getInput('commit_email', { required: false });
-  const accessToken = core.getInput('github_token', { required: true });
   const username = core.getInput('username', { required: false });
 
-  console.log({ commitUser, commitEmail, username, repo });
+  // payload params
+  const pullNumber = payload.pull_request.number;
+  const assignees = [payload.pull_request.user.login];
+
+  console.log({
+    repo,
+    commitUser,
+    commitEmail,
+    username,
+    pullNumber,
+    assignees,
+  });
 
   await exec(`git config --global user.name "${commitUser}"`);
   await exec(`git config --global user.email "${commitEmail}"`);
@@ -29,8 +41,8 @@ async function init() {
     username: username !== '' ? username : repo.owner,
     accessToken,
     ci: true,
-    pullNumber: pullRequest.number,
-    assignees: [prAuthor],
+    pullNumber,
+    assignees,
   });
 }
 
