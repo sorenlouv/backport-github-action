@@ -4,12 +4,6 @@ inputs:
   github_token:
     description: The access token that will be used to create the backport pull requests and perform other operations
     required: true
-  commit_user:
-    description: The username that will be used to commit the cherry-picks for the backport branches
-    required: true
-  commit_email:
-    description: The e-mail address that will be used to commit the cherry-picks for the backport branches
-    required: true
   username:
     description: The owner of the repo where the backport branch will be pushed to. Defaults to the current repo
     required: false

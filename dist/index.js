@@ -21,7 +21,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable no-console */
 const core = __importStar(require("@actions/core"));
-const exec_1 = require("@actions/exec");
 const github_1 = require("@actions/github");
 const backport_1 = require("backport");
 async function init() {
@@ -32,22 +31,11 @@ async function init() {
     // required params
     const accessToken = core.getInput('github_token', { required: true });
     // optional params
-    const commitUser = core.getInput('commit_user', { required: false });
-    const commitEmail = core.getInput('commit_email', { required: false });
     const username = core.getInput('username', { required: false });
     // payload params
     const pullNumber = payload.pull_request.number;
     const assignees = [payload.pull_request.user.login];
-    console.log({
-        repo,
-        commitUser,
-        commitEmail,
-        username,
-        pullNumber,
-        assignees,
-    });
-    await (0, exec_1.exec)(`git config --global user.name "${commitUser}"`);
-    await (0, exec_1.exec)(`git config --global user.email "${commitEmail}"`);
+    console.log({ repo, username, pullNumber, assignees });
     await (0, backport_1.backportRun)({
         repoOwner: repo.owner,
         repoName: repo.repo,

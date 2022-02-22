@@ -1252,10 +1252,10 @@ babel-preset-jest@^27.5.1:
     babel-plugin-jest-hoist "^27.5.1"
     babel-preset-current-node-syntax "^1.0.0"
 
-backport@^7.2.0:
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/backport/-/backport-7.2.0.tgz#767c033e4fc77d4b576b2a072c97f50c6bda7be6"
-  integrity sha512-3vXFwCgq9YQmn9qm5N9fOlyeAaWiTVKs+kQl8DHwmbe3H54+9f7rMf2/qLZWBvuT9C0Q+Q6eYncj121zP8GhtA==
+backport@7.3.0-beta.1:
+  version "7.3.0-beta.1"
+  resolved "https://registry.yarnpkg.com/backport/-/backport-7.3.0-beta.1.tgz#86e57ed79d68b672e2bb5d477efb8469d75fbb0e"
+  integrity sha512-+G37dodVidWZHH7T5UTWg1pFxgIEOj99CvV5Vl7zSg6p8lbjdkRcHoVb1vbJhbzJNoqFa6x1HQK1E0mR0AS8WA==
   dependencies:
     "@octokit/rest" "^18.12.0"
     axios "^0.25.0"
