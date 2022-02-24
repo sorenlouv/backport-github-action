@@ -14,22 +14,22 @@ async function init() {
   const accessToken = core.getInput('github_token', { required: true });
 
   // optional params
-  const username = core.getInput('username', { required: false });
+  const repoForkOwner = core.getInput('repoForkOwner', { required: false });
 
   // payload params
   const pullNumber = payload.pull_request.number;
   const assignees = [payload.pull_request.user.login];
 
-  console.log({ repo, username, pullNumber, assignees });
+  console.log({ repo, repoForkOwner, pullNumber, assignees });
 
   await backportRun({
-    repoOwner: repo.owner,
-    repoName: repo.repo,
-    username: username !== '' ? username : repo.owner,
     accessToken,
+    assignees,
     ci: true,
     pullNumber,
-    assignees,
+    repoForkOwner: repoForkOwner !== '' ? repoForkOwner : repo.owner,
+    repoName: repo.repo,
+    repoOwner: repo.owner,
   });
 }
 

@@ -4,7 +4,7 @@ inputs:
   github_token:
     description: The access token that will be used to create the backport pull requests and perform other operations
     required: true
-  username:
+  repoForkOwner:
     description: The owner of the repo where the backport branch will be pushed to. Defaults to the current repo
     required: false
 runs:

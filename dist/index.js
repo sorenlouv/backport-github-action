@@ -11173,8 +11173,10 @@ const createStatusComment_1 = __nccwpck_require__(58864);
 const apiRequestV4_1 = __nccwpck_require__(30722);
 const logger_1 = __nccwpck_require__(58086);
 const getCommits_1 = __nccwpck_require__(42752);
+const getGitConfigAuthor_1 = __nccwpck_require__(35134);
 const getTargetBranches_1 = __nccwpck_require__(25740);
 const ora_1 = __nccwpck_require__(25090);
+const setupRepo_1 = __nccwpck_require__(97924);
 async function backportRun(processArgs, optionsFromModule = {}) {
     const argv = (0, yargs_parser_1.default)(processArgs);
     const ci = argv.ci ?? optionsFromModule.ci;
@@ -11195,7 +11197,16 @@ async function backportRun(processArgs, optionsFromModule = {}) {
         logger_1.logger.info('Commits', commits);
         const targetBranches = await (0, getTargetBranches_1.getTargetBranches)(options, commits);
         logger_1.logger.info('Target branches', targetBranches);
-        const results = await (0, runSequentially_1.runSequentially)({ options, commits, targetBranches });
+        const [gitConfigAuthor] = await Promise.all([
+            (0, getGitConfigAuthor_1.getGitConfigAuthor)(options),
+            (0, setupRepo_1.setupRepo)(options),
+        ]);
+        const results = await (0, runSequentially_1.runSequentially)({
+            options,
+            commits,
+            targetBranches,
+            gitConfigAuthor,
+        });
         logger_1.logger.info('Results', results);
         const backportResponse = {
             status: 'success',
@@ -11407,9 +11418,9 @@ function getOptionsFromCliArgs(processArgs, { exitOnError = true } = {}) {
         description: 'Use local .backportrc.json config instead of loading from Github',
         type: 'boolean',
     })
-        // push target branch to {authenticatedUsername}/{repoName}
+        // push target branch to {repoForkOwner}/{repoName}
         .option('fork', {
-        description: 'Create backports in fork or origin repo',
+        description: 'Create backports in fork or origin repo. Defaults to true',
         type: 'boolean',
         conflicts: ['noFork'],
     })
@@ -11426,6 +11437,14 @@ function getOptionsFromCliArgs(processArgs, { exitOnError = true } = {}) {
         .option('githubApiBaseUrlV4', {
         hidden: true,
         description: `Base url for Github's GraphQL (v4) API`,
+        type: 'string',
+    })
+        .option('gitAuthorName', {
+        description: `Set commit author name`,
+        type: 'string',
+    })
+        .option('gitAuthorEmail', {
+        description: `Set commit author email`,
         type: 'string',
     })
         .option('logFilePath', {
@@ -11490,7 +11509,7 @@ function getOptionsFromCliArgs(processArgs, { exitOnError = true } = {}) {
         .option('noFork', {
         description: 'Create backports in the origin repo',
         type: 'boolean',
-        conflicts: ['fork'],
+        conflicts: ['fork', 'repoForkOwner'],
     })
         .option('path', {
         description: 'Only list commits touching files under the specified path',
@@ -11527,6 +11546,11 @@ function getOptionsFromCliArgs(processArgs, { exitOnError = true } = {}) {
         description: 'Add reviewer to the target PR',
         type: 'array',
         string: true,
+    })
+        .option('repoForkOwner', {
+        description: 'The owner of the fork where the backport branch is pushed. Defaults to the currently authenticated user',
+        type: 'string',
+        conflicts: ['noFork'],
     })
         .option('repoOwner', {
         description: 'Repository owner',
@@ -11575,10 +11599,6 @@ function getOptionsFromCliArgs(processArgs, { exitOnError = true } = {}) {
         alias: ['label', 'l'],
         type: 'array',
         string: true,
-    })
-        .option('username', {
-        description: 'Defaults to the authenticated user ',
-        type: 'string',
     })
         .option('verbose', {
         description: 'Show additional debug information',
@@ -11900,6 +11920,8 @@ async function getOptions(processArgs, optionsFromModule) {
     const options = {
         // default author
         author: optionsFromGithub.authenticatedUsername,
+        // default fork owner
+        repoForkOwner: optionsFromGithub.authenticatedUsername,
         // default values have lowest precedence
         ...defaultConfigOptions,
         // local config options override default options
@@ -11968,11 +11990,11 @@ function throwForRequiredOptions(options) {
         'prDescription',
         'prFilter',
         'prTitle',
+        'repoForkOwner',
         'repoName',
         'repoOwner',
         'sha',
         'sourceBranch',
-        'username',
     ];
     // Disallow empty strings
     // this is primarily an issue in Github actions where inputs default to empty strings instead of undefined
@@ -12005,10 +12027,8 @@ exports.runSequentially = void 0;
 const logger_1 = __nccwpck_require__(58086);
 const sequentially_1 = __nccwpck_require__(6920);
 const cherrypickAndCreateTargetPullRequest_1 = __nccwpck_require__(34243);
-const setupRepo_1 = __nccwpck_require__(97924);
-async function runSequentially({ options, commits, targetBranches, }) {
+async function runSequentially({ options, commits, targetBranches, gitConfigAuthor, }) {
     logger_1.logger.verbose('Backport options', options);
-    await (0, setupRepo_1.setupRepo)(options, commits);
     const results = [];
     await (0, sequentially_1.sequentially)(targetBranches, async (targetBranch) => {
         logger_1.logger.info(`Backporting ${JSON.stringify(commits)} to ${targetBranch}`);
@@ -12017,6 +12037,7 @@ async function runSequentially({ options, commits, targetBranches, }) {
                 options,
                 commits,
                 targetBranch,
+                gitConfigAuthor: gitConfigAuthor,
             });
             results.push({
                 targetBranch,
@@ -12163,7 +12184,7 @@ exports.getRepoPath = getRepoPath;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getLocalRepoPath = exports.pushBackportBranch = exports.getRepoForkOwner = exports.deleteBackportBranch = exports.createBackportBranch = exports.setGitConfig = exports.getGitConfig = exports.setCommitAuthor = exports.getUnstagedFiles = exports.getConflictingFiles = exports.commitChanges = exports.cherrypick = exports.getCommitsInMergeCommit = exports.getIsMergeCommit = exports.fetchBranch = exports.addRemote = exports.deleteRemote = exports.getIsCommitInBranch = exports.getGitProjectRootPath = exports.getRepoInfoFromGitRemotes = exports.isLocalConfigFileModified = exports.isLocalConfigFileUntracked = exports.getLocalConfigFileCommitDate = exports.cloneRepo = exports.getRemoteUrl = void 0;
+exports.getLocalRepoPath = exports.pushBackportBranch = exports.getRepoForkOwner = exports.deleteBackportBranch = exports.createBackportBranch = exports.getGitConfig = exports.getUnstagedFiles = exports.getConflictingFiles = exports.commitChanges = exports.cherrypick = exports.getCommitsInMergeCommit = exports.getIsMergeCommit = exports.fetchBranch = exports.addRemote = exports.deleteRemote = exports.getIsCommitInBranch = exports.getGitProjectRootPath = exports.getRepoInfoFromGitRemotes = exports.isLocalConfigFileModified = exports.isLocalConfigFileUntracked = exports.getLocalConfigFileCommitDate = exports.cloneRepo = exports.getRemoteUrl = void 0;
 const path_1 = __nccwpck_require__(71017);
 const lodash_1 = __nccwpck_require__(90250);
 const ora_1 = __nccwpck_require__(25090);
@@ -12343,7 +12364,7 @@ async function getCommitsInMergeCommit(options, sha) {
     }
 }
 exports.getCommitsInMergeCommit = getCommitsInMergeCommit;
-async function cherrypick(options, sha, mergedTargetPullRequest) {
+async function cherrypick({ options, sha, mergedTargetPullRequest, commitAuthor, }) {
     const mainlinArg = options.mainline != undefined ? ` --mainline ${options.mainline}` : '';
     const cherrypickRefArg = options.cherrypickRef === false ? '' : ' -x';
     let shaOrRange = sha;
@@ -12363,7 +12384,7 @@ async function cherrypick(options, sha, mergedTargetPullRequest) {
             }
         }
     }
-    const cmd = `git cherry-pick${cherrypickRefArg}${mainlinArg} ${shaOrRange}`;
+    const cmd = `git -c user.name="${commitAuthor.name}" -c user.email="${commitAuthor.email}" cherry-pick${cherrypickRefArg}${mainlinArg} ${shaOrRange}`;
     try {
         await (0, child_process_promisified_1.exec)(cmd, { cwd: (0, env_1.getRepoPath)(options) });
         return { conflictingFiles: [], unstagedFiles: [], needsResolving: false };
@@ -12382,12 +12403,12 @@ async function cherrypick(options, sha, mergedTargetPullRequest) {
         }
         // git info missing
         if (e.message.includes('Please tell me who you are')) {
-            throw new HandledError_1.HandledError(`Cherrypick failed:\n${e.message}`);
+            throw new HandledError_1.HandledError(e.message);
         }
         if (e.message.includes(`bad object ${sha}`)) {
             throw new HandledError_1.HandledError(`Cherrypick failed because commit "${sha}" was not found`);
         }
-        const isCherryPickError = e.cmd === cmd;
+        const isCherryPickError = e.cmd?.includes('cherry-pick') && e.code > 0;
         if (isCherryPickError) {
             const [conflictingFiles, unstagedFiles] = await Promise.all([
                 getConflictingFiles(options),
@@ -12469,19 +12490,6 @@ async function getUnstagedFiles(options) {
     return (0, lodash_1.uniq)(files);
 }
 exports.getUnstagedFiles = getUnstagedFiles;
-async function setCommitAuthor(options, author) {
-    const spinner = (0, ora_1.ora)(options.ci, `Changing author to "${author}"`).start();
-    try {
-        const res = await (0, child_process_promisified_1.exec)(`git commit --amend --no-edit --author "${author} <${author}@users.noreply.github.com>"`, { cwd: (0, env_1.getRepoPath)(options) });
-        spinner.succeed();
-        return res;
-    }
-    catch (e) {
-        spinner.fail();
-        throw e;
-    }
-}
-exports.setCommitAuthor = setCommitAuthor;
 async function getGitConfig({ dir, key, }) {
     try {
         const res = await (0, child_process_promisified_1.exec)(`git config ${key}`, { cwd: dir });
@@ -12492,16 +12500,6 @@ async function getGitConfig({ dir, key, }) {
     }
 }
 exports.getGitConfig = getGitConfig;
-async function setGitConfig({ dir, key, value, }) {
-    try {
-        await (0, child_process_promisified_1.exec)(`git config ${key} ${value}`, { cwd: dir });
-    }
-    catch (e) {
-        logger_1.logger.error(`Could not set git config: ${key}=${value}`, e);
-        return;
-    }
-}
-exports.setGitConfig = setGitConfig;
 // How the commit flows:
 // ${sourceBranch} ->   ${backportBranch}   -> ${targetBranch}
 //     master      ->  backport/7.x/pr-1234 ->      7.x
@@ -12533,7 +12531,7 @@ exports.deleteBackportBranch = deleteBackportBranch;
  * Returns the repo owner of the forked repo or the source repo
  */
 function getRepoForkOwner(options) {
-    return options.fork ? options.authenticatedUsername : options.repoOwner;
+    return options.fork ? options.repoForkOwner : options.repoOwner;
 }
 exports.getRepoForkOwner = getRepoForkOwner;
 async function pushBackportBranch({ options, backportBranch, }) {
@@ -13658,7 +13656,7 @@ async function getOptionsFromGithub(options) {
     }
     const remoteConfig = await getRemoteConfigFileOptions(res, options.cwd, options.skipRemoteConfig);
     return {
-        authenticatedUsername: options.username ?? res.viewer.login,
+        authenticatedUsername: res.viewer.login,
         sourceBranch: res.repository.defaultBranchRef.name,
         ...remoteConfig,
     };
@@ -14433,15 +14431,12 @@ const prompts_1 = __nccwpck_require__(98223);
 const sequentially_1 = __nccwpck_require__(6920);
 const getCommitsWithoutBackports_1 = __nccwpck_require__(93921);
 const ora_1 = __nccwpck_require__(25090);
-async function cherrypickAndCreateTargetPullRequest({ options, commits, targetBranch, }) {
+async function cherrypickAndCreateTargetPullRequest({ options, commits, targetBranch, gitConfigAuthor, }) {
     const backportBranch = getBackportBranchName(targetBranch, commits);
     const repoForkOwner = (0, git_1.getRepoForkOwner)(options);
     (0, logger_1.consoleLog)(`\n${chalk_1.default.bold(`Backporting to ${targetBranch}:`)}`);
     await (0, git_1.createBackportBranch)({ options, targetBranch, backportBranch });
-    await (0, sequentially_1.sequentially)(commits, (commit) => waitForCherrypick(options, commit, targetBranch));
-    if (options.resetAuthor) {
-        await (0, git_1.setCommitAuthor)(options, options.authenticatedUsername);
-    }
+    await (0, sequentially_1.sequentially)(commits, (commit) => waitForCherrypick(options, commit, targetBranch, gitConfigAuthor));
     if (options.dryRun) {
         (0, ora_1.ora)(options.ci).succeed('Dry run complete');
         return { url: 'https://localhost/dry-run', didUpdate: false, number: 1337 };
@@ -14506,16 +14501,26 @@ function getBackportBranchName(targetBranch, commits) {
         .slice(0, 200);
     return `backport/${targetBranch}/${refValues}`;
 }
-async function waitForCherrypick(options, commit, targetBranch) {
+async function waitForCherrypick(options, commit, targetBranch, gitConfigAuthor) {
     const spinnerText = `Cherry-picking: ${chalk_1.default.greenBright((0, commitFormatters_1.getFirstLine)(commit.sourceCommit.message))}`;
     const mergedTargetPullRequest = commit.expectedTargetPullRequests.find((pr) => pr.state === 'MERGED' && pr.branch === targetBranch);
     const cherrypickSpinner = (0, ora_1.ora)(options.ci, spinnerText).start();
     let conflictingFiles;
     let unstagedFiles;
     let needsResolving;
+    const commitAuthor = getCommitAuthor({
+        options,
+        gitConfigAuthor,
+        commit,
+    });
     try {
         await (0, git_1.fetchBranch)(options, commit.sourceBranch);
-        ({ conflictingFiles, unstagedFiles, needsResolving } = await (0, git_1.cherrypick)(options, commit.sourceCommit.sha, mergedTargetPullRequest));
+        ({ conflictingFiles, unstagedFiles, needsResolving } = await (0, git_1.cherrypick)({
+            options,
+            sha: commit.sourceCommit.sha,
+            mergedTargetPullRequest,
+            commitAuthor,
+        }));
         // no conflicts encountered
         if (!needsResolving) {
             cherrypickSpinner.succeed();
@@ -14629,6 +14634,18 @@ Press ENTER when the conflicts are resolved and files are staged`);
         conflictingFiles: _conflictingFiles.map((file) => file.absolute),
         unstagedFiles: _unstagedFiles,
     });
+}
+function getCommitAuthor({ options, gitConfigAuthor, commit, }) {
+    if (options.resetAuthor) {
+        return {
+            name: options.authenticatedUsername,
+            email: `<${options.authenticatedUsername}@users.noreply.github.com>`,
+        };
+    }
+    return {
+        name: options.gitAuthorName ?? gitConfigAuthor?.name ?? commit.author.name,
+        email: options.gitAuthorEmail ?? gitConfigAuthor?.email ?? commit.author.email,
+    };
 }
 
 
@@ -14782,6 +14799,29 @@ exports.getCommitsWithoutBackports = getCommitsWithoutBackports;
 
 /***/ }),
 
+/***/ 35134:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getGitConfigAuthor = void 0;
+const git_1 = __nccwpck_require__(28728);
+async function getGitConfigAuthor(options) {
+    const localRepoPath = await (0, git_1.getLocalRepoPath)(options);
+    if (!localRepoPath) {
+        return;
+    }
+    return {
+        name: await (0, git_1.getGitConfig)({ dir: localRepoPath, key: 'user.name' }),
+        email: await (0, git_1.getGitConfig)({ dir: localRepoPath, key: 'user.email' }),
+    };
+}
+exports.getGitConfigAuthor = getGitConfigAuthor;
+
+
+/***/ }),
+
 /***/ 25740:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -14898,7 +14938,7 @@ const HandledError_1 = __nccwpck_require__(46759);
 const env_1 = __nccwpck_require__(34222);
 const git_1 = __nccwpck_require__(28728);
 const ora_1 = __nccwpck_require__(25090);
-async function setupRepo(options, commits) {
+async function setupRepo(options) {
     const repoPath = (0, env_1.getRepoPath)(options);
     const isAlreadyCloned = await getIsRepoCloned(options);
     if (options.cwd.includes(repoPath)) {
@@ -14929,14 +14969,13 @@ async function setupRepo(options, commits) {
             throw e;
         }
     }
-    await setupGitUsernameAndEmail(options, commits);
     // delete default "origin" remote to avoid confusion
     await (0, git_1.deleteRemote)(options, 'origin');
     // ensure remote are setup with latest accessToken
-    await (0, git_1.deleteRemote)(options, options.authenticatedUsername);
-    await (0, git_1.addRemote)(options, options.authenticatedUsername);
+    await (0, git_1.deleteRemote)(options, options.repoForkOwner);
+    await (0, git_1.addRemote)(options, options.repoForkOwner);
     // add remote for non-fork repo (if the above is a fork)
-    if (options.authenticatedUsername !== options.repoOwner) {
+    if (options.repoForkOwner !== options.repoOwner) {
         await (0, git_1.deleteRemote)(options, options.repoOwner);
         await (0, git_1.addRemote)(options, options.repoOwner);
     }
@@ -14946,37 +14985,6 @@ async function getIsRepoCloned(options) {
     const repoPath = (0, env_1.getRepoPath)(options);
     const projectRoot = await (0, git_1.getGitProjectRootPath)(repoPath);
     return repoPath === projectRoot;
-}
-async function setupGitUsernameAndEmail(options, commits) {
-    const repoPath = (0, env_1.getRepoPath)(options);
-    const userName = await (0, git_1.getGitConfig)({ dir: repoPath, key: 'user.name' });
-    const userEmail = await (0, git_1.getGitConfig)({ dir: repoPath, key: 'user.email' });
-    // return early if user.email and user.name is already set
-    if (userName && userEmail) {
-        return;
-    }
-    const commitAuthor = commits[0].author;
-    const localRepoPath = await (0, git_1.getLocalRepoPath)(options);
-    if (!userName) {
-        const gitConfigUsername = localRepoPath
-            ? await (0, git_1.getGitConfig)({ dir: localRepoPath, key: 'user.name' })
-            : undefined;
-        await (0, git_1.setGitConfig)({
-            dir: repoPath,
-            key: 'user.name',
-            value: gitConfigUsername ?? options.gitUserName ?? commitAuthor.name,
-        });
-    }
-    if (!userEmail) {
-        const gitConfigEmail = localRepoPath
-            ? await (0, git_1.getGitConfig)({ dir: localRepoPath, key: 'user.email' })
-            : undefined;
-        await (0, git_1.setGitConfig)({
-            dir: repoPath,
-            key: 'user.email',
-            value: gitConfigEmail ?? options.gitUserEmail ?? commitAuthor.email,
-        });
-    }
 }
 
 
@@ -15034,7 +15042,7 @@ exports.maybe = maybe;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PACKAGE_VERSION = void 0;
-exports.PACKAGE_VERSION = '7.3.0-beta.1';
+exports.PACKAGE_VERSION = '7.3.1';
 
 
 /***/ }),
@@ -117697,19 +117705,19 @@ async function init() {
     // required params
     const accessToken = core.getInput('github_token', { required: true });
     // optional params
-    const username = core.getInput('username', { required: false });
+    const repoForkOwner = core.getInput('repoForkOwner', { required: false });
     // payload params
     const pullNumber = payload.pull_request.number;
     const assignees = [payload.pull_request.user.login];
-    console.log({ repo, username, pullNumber, assignees });
+    console.log({ repo, repoForkOwner, pullNumber, assignees });
     await (0, backport_1.backportRun)({
-        repoOwner: repo.owner,
-        repoName: repo.repo,
-        username: username !== '' ? username : repo.owner,
         accessToken,
+        assignees,
         ci: true,
         pullNumber,
-        assignees,
+        repoForkOwner: repoForkOwner !== '' ? repoForkOwner : repo.owner,
+        repoName: repo.repo,
+        repoOwner: repo.owner,
     });
 }
 init().catch((error) => {
