@@ -14,7 +14,11 @@ async function init() {
   const accessToken = core.getInput('github_token', { required: true });
 
   // optional params
-  const repoForkOwner = core.getInput('repoForkOwner', { required: false });
+  const repoForkOwnerInput = core.getInput('repoForkOwner', {
+    required: false,
+  });
+  const repoForkOwner =
+    repoForkOwnerInput !== '' ? repoForkOwnerInput : repo.owner;
 
   // payload params
   const pullNumber = payload.pull_request.number;
@@ -27,7 +31,7 @@ async function init() {
     assignees,
     ci: true,
     pullNumber,
-    repoForkOwner: repoForkOwner !== '' ? repoForkOwner : repo.owner,
+    repoForkOwner,
     repoName: repo.repo,
     repoOwner: repo.owner,
   });
