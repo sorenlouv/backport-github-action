@@ -36,7 +36,7 @@ async function init() {
     repoOwner: repo.owner,
   });
 
-  console.log(result);
+  console.log(JSON.stringify(result, null, 2));
 }
 
 init().catch((error) => {

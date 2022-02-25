@@ -117722,7 +117722,7 @@ async function init() {
         repoName: repo.repo,
         repoOwner: repo.owner,
     });
-    console.log(result);
+    console.log(JSON.stringify(result, null, 2));
 }
 init().catch((error) => {
     console.error('An error occurred while backporting', error);
