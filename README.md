@@ -31,6 +31,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Backport log
-        run: cat ${{ env.HOME }}/.backport/backport.log
+        run: cat ~/.backport/backport.log
           
 ```
