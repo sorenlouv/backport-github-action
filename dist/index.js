@@ -117713,7 +117713,7 @@ async function init() {
     const pullNumber = payload.pull_request.number;
     const assignees = [payload.pull_request.user.login];
     console.log({ repo, repoForkOwner, pullNumber, assignees });
-    await (0, backport_1.backportRun)({
+    const result = await (0, backport_1.backportRun)({
         accessToken,
         assignees,
         ci: true,
@@ -117722,9 +117722,10 @@ async function init() {
         repoName: repo.repo,
         repoOwner: repo.owner,
     });
+    console.log(result);
 }
 init().catch((error) => {
-    console.error('An error occurred', error);
+    console.error('An error occurred while backporting', error);
     core.setFailed(error.message);
 });
 

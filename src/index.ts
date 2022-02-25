@@ -26,7 +26,7 @@ async function init() {
 
   console.log({ repo, repoForkOwner, pullNumber, assignees });
 
-  await backportRun({
+  const result = await backportRun({
     accessToken,
     assignees,
     ci: true,
@@ -35,9 +35,11 @@ async function init() {
     repoName: repo.repo,
     repoOwner: repo.owner,
   });
+
+  console.log(result);
 }
 
 init().catch((error) => {
-  console.error('An error occurred', error);
+  console.error('An error occurred while backporting', error);
   core.setFailed(error.message);
 });
