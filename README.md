@@ -34,7 +34,7 @@ jobs:
           
 ```
 
-Pull requests with labels beginning with `backport-to` will now automatically be backported. For example, by adding the label "backport-to-production", the PR will be backported to the branch called "production".
+Now, to backport a pull request, simply apply the labels `auto-backport` and `backport-to-production`. This will automatically backport the PR to the branch called "production" when the PR is merged. 
 
 ## Configuration
 
