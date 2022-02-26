@@ -1,8 +1,6 @@
 # Backport Github Action
 
-See [Backport documentation](https://github.com/sqren/backport) for all configuration options.
-
-**Example usage**
+## Getting started
 
 Create a file `/.github/workflows/backport.yml` with the following content:
 
@@ -29,8 +27,36 @@ jobs:
         uses: sqren/backport-github-action@v7.3.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          autoBackportLabelPrefix: backport-to
 
       - name: Backport log
-        run: cat ~/.backport/backport.log
+        run: cat /home/runner/.backport/backport.log
           
 ```
+
+Pull requests with labels beginning with `backport-to` will now automatically be backported. For example, by adding the label "backport-to-production", the PR will be backported to the branch called "production".
+
+## Configuration
+
+For more fine grained customization, and for the ability to run the [Backport Tool](https://github.com/sqren/backport) as a CLI tool locally, you should create a `.backportrc.json` file in the root directory:
+
+```js
+// .backportrc.json
+{
+  // example repo info
+  "repoOwner": "torvalds",
+  "repoName": "linux",
+
+  // the branches available to backport to
+  "targetBranchChoices": ["main", "production", "staging"],
+
+  // In this case, adding the label "backport-to-production" will backport the PR to the "production" branch
+  "branchLabelMapping": {
+    "^backport-to-(.+)$": "$1"
+  }
+}
+```
+
+
+ See the [Backport Tool documentation](https://github.com/sqren/backport/blob/main/docs/configuration.md) for all configuration options.
+

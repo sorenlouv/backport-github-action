@@ -117705,6 +117705,10 @@ async function init() {
     // required params
     const accessToken = core.getInput('github_token', { required: true });
     // optional params
+    const autoBackportLabelPrefixInput = core.getInput('autoBackportLabelPrefix', { required: false });
+    const branchLabelMapping = autoBackportLabelPrefixInput !== ''
+        ? { [`^${autoBackportLabelPrefixInput}-(.+)$`]: '$1' }
+        : undefined;
     const repoForkOwnerInput = core.getInput('repoForkOwner', {
         required: false,
     });
@@ -117712,10 +117716,17 @@ async function init() {
     // payload params
     const pullNumber = payload.pull_request.number;
     const assignees = [payload.pull_request.user.login];
-    console.log({ repo, repoForkOwner, pullNumber, assignees });
+    console.log({
+        assignees,
+        branchLabelMapping,
+        pullNumber,
+        repo,
+        repoForkOwner,
+    });
     const result = await (0, backport_1.backportRun)({
         accessToken,
         assignees,
+        branchLabelMapping,
         ci: true,
         pullNumber,
         repoForkOwner,
