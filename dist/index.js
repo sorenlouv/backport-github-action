@@ -117696,26 +117696,56 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable no-console */
 const core = __importStar(__nccwpck_require__(42186));
 const github_1 = __nccwpck_require__(95438);
+const run_1 = __nccwpck_require__(7764);
+(0, run_1.run)({
+    context: github_1.context,
+    inputs: {
+        accessToken: core.getInput('github_token', {
+            required: true,
+        }),
+        autoBackportLabelPrefix: core.getInput('auto_backport_label_prefix', {
+            required: false,
+        }),
+        repoForkOwner: core.getInput('repo_fork_owner', {
+            required: false,
+        }),
+    },
+})
+    .then((res) => {
+    core.setOutput('Result', res);
+    if (res.status === 'failure') {
+        core.setFailed(res.errorMessage);
+    }
+})
+    .catch((error) => {
+    console.error('An error occurred while backporting', error);
+    core.setFailed(error.message);
+});
+
+
+/***/ }),
+
+/***/ 7764:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.run = void 0;
 const backport_1 = __nccwpck_require__(51296);
-async function init() {
-    const { payload, repo } = github_1.context;
-    if (!payload.pull_request) {
+async function run({ context, inputs, }) {
+    const { payload, repo } = context;
+    const pullRequest = payload.pull_request;
+    if (!pullRequest) {
         throw Error('Only pull_request events are supported.');
     }
-    // required params
-    const accessToken = core.getInput('github_token', { required: true });
-    // optional params
-    const autoBackportLabelPrefixInput = core.getInput('autoBackportLabelPrefix', { required: false });
-    const branchLabelMapping = autoBackportLabelPrefixInput !== ''
-        ? { [`^${autoBackportLabelPrefixInput}-(.+)$`]: '$1' }
+    const branchLabelMapping = inputs.autoBackportLabelPrefix !== ''
+        ? { [`^${inputs.autoBackportLabelPrefix}-(.+)$`]: '$1' }
         : undefined;
-    const repoForkOwnerInput = core.getInput('repoForkOwner', {
-        required: false,
-    });
-    const repoForkOwner = repoForkOwnerInput !== '' ? repoForkOwnerInput : repo.owner;
+    const repoForkOwner = inputs.repoForkOwner !== '' ? inputs.repoForkOwner : repo.owner;
     // payload params
-    const pullNumber = payload.pull_request.number;
-    const assignees = [payload.pull_request.user.login];
+    const pullNumber = pullRequest.number;
+    const assignees = [pullRequest.user.login];
     console.log({
         assignees,
         branchLabelMapping,
@@ -117724,7 +117754,7 @@ async function init() {
         repoForkOwner,
     });
     const result = await (0, backport_1.backportRun)({
-        accessToken,
+        accessToken: inputs.accessToken,
         assignees,
         branchLabelMapping,
         ci: true,
@@ -117733,12 +117763,9 @@ async function init() {
         repoName: repo.repo,
         repoOwner: repo.owner,
     });
-    console.log(JSON.stringify(result, null, 2));
+    return result;
 }
-init().catch((error) => {
-    console.error('An error occurred while backporting', error);
-    core.setFailed(error.message);
-});
+exports.run = run;
 
 
 /***/ }),

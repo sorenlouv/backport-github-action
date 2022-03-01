@@ -2,7 +2,8 @@
   "scripts": {
     "build": "yarn ncc build src/index.ts",
     "prepare": "husky install",
-    "lint": "eslint './**/*.{ts,js}'"
+    "lint": "eslint './**/*.{ts,js}'",
+    "test": "jest"
   },
   "license": "MIT",
   "dependencies": {
