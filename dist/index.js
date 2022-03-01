@@ -11195,6 +11195,13 @@ async function backportRun(processArgs, optionsFromModule = {}) {
         spinner.stop();
         commits = await (0, getCommits_1.getCommits)(options);
         logger_1.logger.info('Commits', commits);
+        if (options.ls) {
+            return {
+                status: 'success',
+                commits,
+                results: [],
+            };
+        }
         const targetBranches = await (0, getTargetBranches_1.getTargetBranches)(options, commits);
         logger_1.logger.info('Target branches', targetBranches);
         const [gitConfigAuthor] = await Promise.all([
@@ -11233,18 +11240,8 @@ async function backportRun(processArgs, optionsFromModule = {}) {
                 backportResponse,
             });
         }
-        if (e instanceof HandledError_1.HandledError || e instanceof apiRequestV4_1.GithubV4Exception) {
-            (0, logger_1.consoleLog)(e.message);
-        }
-        else if (e instanceof Error) {
-            // output
-            (0, logger_1.consoleLog)('\n');
-            (0, logger_1.consoleLog)(chalk_1.default.bold('⚠️  Ouch! An unhandled error occured 😿'));
-            (0, logger_1.consoleLog)(e.stack ? e.stack : e.message);
-            (0, logger_1.consoleLog)('Please open an issue in https://github.com/sqren/backport/issues or contact me directly on https://twitter.com/sorenlouv');
-            (0, logger_1.consoleLog)(chalk_1.default.italic(`For additional details see the logs: ${(0, env_1.getLogfilePath)({
-                logFilePath,
-            })}`));
+        if (!options?.ls) {
+            outputError({ e, logFilePath });
         }
         logger_1.logger.error('Unhandled exception', e);
         process.exitCode = 1;
@@ -11252,6 +11249,22 @@ async function backportRun(processArgs, optionsFromModule = {}) {
     }
 }
 exports.backportRun = backportRun;
+function outputError({ e, logFilePath, }) {
+    if (e instanceof HandledError_1.HandledError || e instanceof apiRequestV4_1.GithubV4Exception) {
+        (0, logger_1.consoleLog)(e.message);
+        return;
+    }
+    if (e instanceof Error) {
+        // output
+        (0, logger_1.consoleLog)('\n');
+        (0, logger_1.consoleLog)(chalk_1.default.bold('⚠️  Ouch! An unhandled error occured 😿'));
+        (0, logger_1.consoleLog)(e.stack ? e.stack : e.message);
+        (0, logger_1.consoleLog)('Please open an issue in https://github.com/sqren/backport/issues or contact me directly on https://twitter.com/sorenlouv');
+        (0, logger_1.consoleLog)(chalk_1.default.italic(`For additional details see the logs: ${(0, env_1.getLogfilePath)({
+            logFilePath,
+        })}`));
+    }
+}
 
 
 /***/ }),
@@ -11267,6 +11280,7 @@ const backportRun_1 = __nccwpck_require__(93133);
 const fetchCommitByPullNumber_1 = __nccwpck_require__(58055);
 const fetchCommitBySha_1 = __nccwpck_require__(43739);
 const fetchCommitsByAuthor_1 = __nccwpck_require__(71788);
+const fetchPullRequestsBySearchQuery_1 = __nccwpck_require__(15439);
 const getOptionsFromGithub_1 = __nccwpck_require__(83724);
 const logger_1 = __nccwpck_require__(58086);
 const excludeUndefined_1 = __nccwpck_require__(84779);
@@ -11302,14 +11316,24 @@ async function getCommits(options) {
         const shas = Array.isArray(options.sha) ? options.sha : [options.sha];
         return Promise.all(shas.map((sha) => (0, fetchCommitBySha_1.fetchCommitBySha)({ ...optionsFromGithub, ...options, sha })));
     }
-    return (0, fetchCommitsByAuthor_1.fetchCommitsByAuthor)({
-        ...optionsFromGithub,
-        ...options,
-        // filters
-        author: options.author ?? null,
-        dateSince: options.dateSince ?? null,
-        dateUntil: options.dateUntil ?? null,
-    });
+    if (options.prFilter) {
+        return (0, fetchPullRequestsBySearchQuery_1.fetchPullRequestsBySearchQuery)({
+            ...optionsFromGithub,
+            ...options,
+            prFilter: options.prFilter,
+            author: options.author ?? null,
+        });
+    }
+    if (options.author) {
+        return (0, fetchCommitsByAuthor_1.fetchCommitsByAuthor)({
+            ...optionsFromGithub,
+            ...options,
+            author: options.author,
+            dateSince: options.dateSince ?? null,
+            dateUntil: options.dateUntil ?? null,
+        });
+    }
+    throw new Error('Must supply one of: `pullNumber`, `sha`, `prFilter` or `author`');
 }
 exports.getCommits = getCommits;
 
@@ -11452,6 +11476,10 @@ function getOptionsFromCliArgs(processArgs, { exitOnError = true } = {}) {
         description: `Path to log file`,
         type: 'string',
     })
+        .option('ls', {
+        description: 'List commits instead of backporting them',
+        type: 'boolean',
+    })
         .option('mainline', {
         description: 'Parent id of merge commit. Defaults to 1 when supplied without arguments',
         type: 'number',
@@ -11510,6 +11538,10 @@ function getOptionsFromCliArgs(processArgs, { exitOnError = true } = {}) {
         description: 'Create backports in the origin repo',
         type: 'boolean',
         conflicts: ['fork', 'repoForkOwner'],
+    })
+        .option('onlyMissing', {
+        description: 'Only list commits with missing or unmerged backports',
+        type: 'boolean',
     })
         .option('path', {
         description: 'Only list commits touching files under the specified path',
@@ -11946,6 +11978,9 @@ async function getRequiredOptions(combined) {
     }
     // require access token
     if (!accessToken) {
+        if (combined.ci) {
+            throw new HandledError_1.HandledError(`Access token missing. It must be explicitly supplied when using "--ci" option. Example: --access-token very-secret`);
+        }
         const globalConfigPath = (0, env_1.getGlobalConfigPath)();
         throw new HandledError_1.HandledError(`Please update your config file: "${globalConfigPath}".\nIt must contain a valid "accessToken".\n\nRead more: ${GLOBAL_CONFIG_DOCS_LINK}`);
     }
@@ -11955,11 +11990,8 @@ async function getRequiredOptions(combined) {
         githubApiBaseUrlV4: combined.githubApiBaseUrlV4,
         accessToken,
     });
-    if (!gitRemote.repoName) {
-        throw new HandledError_1.HandledError(`Please specify a repo name: "--repo-name kibana".\n\nRead more: ${PROJECT_CONFIG_DOCS_LINK}`);
-    }
-    if (!gitRemote.repoOwner) {
-        throw new HandledError_1.HandledError(`Please specify a repo owner: "--repo-owner elastic".\n\nRead more: ${PROJECT_CONFIG_DOCS_LINK}`);
+    if (!gitRemote.repoName || !gitRemote.repoOwner) {
+        throw new HandledError_1.HandledError(`Please specify a repository: "--repo elastic/kibana".\n\nRead more: ${PROJECT_CONFIG_DOCS_LINK}`);
     }
     return {
         accessToken,
@@ -13320,6 +13352,7 @@ exports.fetchCommitsByAuthor = void 0;
 const graphql_tag_1 = __importDefault(__nccwpck_require__(58435));
 const lodash_1 = __nccwpck_require__(90250);
 const filterEmpty_1 = __nccwpck_require__(97221);
+const filterUnmergedCommits_1 = __nccwpck_require__(42546);
 const HandledError_1 = __nccwpck_require__(46759);
 const remoteConfig_1 = __nccwpck_require__(28593);
 const parseSourceCommit_1 = __nccwpck_require__(33513);
@@ -13413,6 +13446,9 @@ async function fetchCommitsByAuthor(options) {
     }
     const commitsUnique = (0, lodash_1.uniqBy)(commits, (c) => c.sourceCommit.sha);
     const commitsSorted = (0, lodash_1.orderBy)(commitsUnique, (c) => c.sourceCommit.committedDate, 'desc');
+    if (options.onlyMissing) {
+        return commitsSorted.filter(filterUnmergedCommits_1.filterUnmergedCommits);
+    }
     return commitsSorted;
 }
 exports.fetchCommitsByAuthor = fetchCommitsByAuthor;
@@ -13420,7 +13456,7 @@ exports.fetchCommitsByAuthor = fetchCommitsByAuthor;
 
 /***/ }),
 
-/***/ 95507:
+/***/ 15439:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -13429,15 +13465,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.fetchPullRequestBySearchQuery = void 0;
+exports.fetchPullRequestsBySearchQuery = void 0;
 const graphql_tag_1 = __importDefault(__nccwpck_require__(58435));
 const lodash_1 = __nccwpck_require__(90250);
+const filterUnmergedCommits_1 = __nccwpck_require__(42546);
 const HandledError_1 = __nccwpck_require__(46759);
 const remoteConfig_1 = __nccwpck_require__(28593);
 const parseSourceCommit_1 = __nccwpck_require__(33513);
 const apiRequestV4_1 = __nccwpck_require__(30722);
-async function fetchPullRequestBySearchQuery(options) {
-    const { accessToken, githubApiBaseUrlV4, maxNumber = 10, prFilter, repoName, repoOwner, sourceBranch, author, } = options;
+async function fetchPullRequestsBySearchQuery(options) {
+    const { accessToken, githubApiBaseUrlV4 = 'https://api.github.com/graphql', maxNumber = 10, prFilter, repoName, repoOwner, sourceBranch, author, } = options;
     const query = (0, graphql_tag_1.default) `
     query PullRequestBySearchQuery($query: String!, $maxNumber: Int!) {
       search(query: $query, type: ISSUE, first: $maxNumber) {
@@ -13453,11 +13490,14 @@ async function fetchPullRequestBySearchQuery(options) {
 
     ${parseSourceCommit_1.SourceCommitWithTargetPullRequestFragment}
   `;
-    const authorFilter = author ? ` author:${author}` : '';
-    const searchQuery = `type:pr is:merged sort:updated-desc repo:${repoOwner}/${repoName}${authorFilter} ${prFilter} base:${sourceBranch}`;
+    const authorFilter = options.author ? ` author:${options.author}` : '';
+    const sourceBranchFilter = prFilter.includes('base:')
+        ? ''
+        : ` base:${sourceBranch}`;
+    const searchQuery = `type:pr is:merged sort:updated-desc repo:${repoOwner}/${repoName}${authorFilter}${sourceBranchFilter} ${prFilter} `;
     const variables = {
         query: searchQuery,
-        maxNumber: maxNumber,
+        maxNumber,
     };
     let res;
     try {
@@ -13477,14 +13517,17 @@ async function fetchPullRequestBySearchQuery(options) {
     });
     // terminate if not commits were found
     if ((0, lodash_1.isEmpty)(commits)) {
-        const errorText = options.author
-            ? `There are no commits by "${options.author}" matching the filter "${prFilter}". Try with \`--all\` for commits by all users or \`--author=<username>\` for commits from a specific user`
-            : `There are no pull requests matching the filter "${prFilter}"`;
+        const errorText = author
+            ? `No commits found for query:\n    ${searchQuery}\n\nUse \`--all\` to see commits by all users or \`--author=<username>\` for commits from a specific user`
+            : `No commits found for query:\n    ${searchQuery}`;
         throw new HandledError_1.HandledError(errorText);
+    }
+    if (options.onlyMissing) {
+        return commits.filter(filterUnmergedCommits_1.filterUnmergedCommits);
     }
     return commits;
 }
-exports.fetchPullRequestBySearchQuery = fetchPullRequestBySearchQuery;
+exports.fetchPullRequestsBySearchQuery = fetchPullRequestsBySearchQuery;
 
 
 /***/ }),
@@ -13826,7 +13869,7 @@ function throwOnInvalidAccessToken({ error, repoOwner, repoName, }) {
     const statusCode = error.githubResponse.status;
     switch (statusCode) {
         case 200: {
-            const repoNotFound = error.githubResponse.data.errors?.some((error) => error.type === 'NOT_FOUND' && error.path.join('.') === 'repository');
+            const repoNotFound = error.githubResponse.data.errors?.some((error) => error.type === 'NOT_FOUND' && error.path?.join('.') === 'repository');
             const grantedScopes = error.githubResponse.headers['x-oauth-scopes'] || '';
             const requiredScopes = error.githubResponse.headers['x-accepted-oauth-scopes'] || '';
             const ssoHeader = (0, maybe_1.maybe)(error.githubResponse.headers['x-github-sso']);
@@ -13970,7 +14013,7 @@ function getPrStateIcon(state) {
     if (state === 'MERGED') {
         return '🟢';
     }
-    if (state === 'MISSING') {
+    if (state === 'NOT_CREATED') {
         return '🔴';
     }
     if (state === 'OPEN') {
@@ -13983,8 +14026,8 @@ function getPrStateText(state) {
     if (state === 'MERGED') {
         return chalk_1.default.gray('Merged');
     }
-    if (state === 'MISSING') {
-        return chalk_1.default.gray('Backport missing');
+    if (state === 'NOT_CREATED') {
+        return chalk_1.default.gray('Backport not created');
     }
     if (state === 'OPEN') {
         return chalk_1.default.gray('Open, not merged');
@@ -14010,7 +14053,7 @@ function getSimplePullStatus(c) {
         if (state === 'MERGED') {
             return chalk_1.default.green(branch);
         }
-        if (state === 'MISSING') {
+        if (state === 'NOT_CREATED') {
             return chalk_1.default.red(branch);
         }
         if (state === 'OPEN') {
@@ -14131,7 +14174,7 @@ exports.parseRemoteConfig = parseRemoteConfig;
 function swallowMissingConfigFileException(error) {
     const { data, errors } = error.githubResponse.data;
     const missingConfigError = errors?.some((error) => {
-        return error.path.includes('remoteConfig') && error.type === 'NOT_FOUND';
+        return error.path?.includes('remoteConfig') && error.type === 'NOT_FOUND';
     });
     // swallow error if it's just the config file that's missing
     if (missingConfigError && data != null) {
@@ -14245,7 +14288,7 @@ function getMissingTargetPullRequests(sourcePullRequest, existingTargetPullReque
     return expected
         .filter((targetBranch) => !expectedTargetBranches.includes(targetBranch))
         .map((branch) => {
-        return { branch, state: 'MISSING' };
+        return { branch, state: 'NOT_CREATED' };
     });
 }
 // narrow TimelineEdge to TimelinePullRequestEdge
@@ -14667,7 +14710,7 @@ const commitFormatters_1 = __nccwpck_require__(59216);
 const fetchCommitByPullNumber_1 = __nccwpck_require__(58055);
 const fetchCommitBySha_1 = __nccwpck_require__(43739);
 const fetchCommitsByAuthor_1 = __nccwpck_require__(71788);
-const fetchPullRequestBySearchQuery_1 = __nccwpck_require__(95507);
+const fetchPullRequestsBySearchQuery_1 = __nccwpck_require__(15439);
 const prompts_1 = __nccwpck_require__(98223);
 const ora_1 = __nccwpck_require__(25090);
 function getOraPersistsOption(question, answer) {
@@ -14697,16 +14740,22 @@ async function getCommits(options) {
             spinner.stopAndPersist(getOraPersistsOption('Select pull request', (0, commitFormatters_1.getFirstLine)(commit.sourceCommit.message)));
             return [commit];
         }
-        if (options.ci) {
+        if (options.ci && !options.ls) {
             throw new HandledError_1.HandledError('When "--ci" flag is enabled either `--sha` or `--pr` must be specified');
         }
         spinner.text = options.prFilter
             ? 'Loading pull requests...'
             : `Loading commits from branch "${options.sourceBranch}"...`;
         const commitChoices = options.prFilter
-            ? await (0, fetchPullRequestBySearchQuery_1.fetchPullRequestBySearchQuery)(options)
+            ? await (0, fetchPullRequestsBySearchQuery_1.fetchPullRequestsBySearchQuery)({
+                ...options,
+                prFilter: options.prFilter,
+            })
             : await (0, fetchCommitsByAuthor_1.fetchCommitsByAuthor)(options);
         spinner.stop();
+        if (options.ls) {
+            return commitChoices;
+        }
         return (0, prompts_1.promptForCommits)({
             commitChoices,
             isMultipleChoice: options.multipleCommits,
@@ -14714,7 +14763,12 @@ async function getCommits(options) {
         });
     }
     catch (e) {
-        spinner.fail();
+        if (options.ls) {
+            spinner.stop();
+        }
+        else {
+            spinner.fail();
+        }
         throw e;
     }
 }
@@ -14840,7 +14894,7 @@ function getTargetBranches(options, commits) {
     // target branches from the first commit
     const missingTargetBranches = commits.length === 1
         ? commits[0].expectedTargetPullRequests
-            .filter((pr) => pr.state === 'MISSING')
+            .filter((pr) => pr.state === 'NOT_CREATED' || pr.state === 'CLOSED')
             .map((pr) => pr.branch)
         : [];
     // automatically backport to specified target branches
@@ -15020,6 +15074,21 @@ exports.filterNil = filterNil;
 
 /***/ }),
 
+/***/ 42546:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.filterUnmergedCommits = void 0;
+function filterUnmergedCommits(commit) {
+    return commit.expectedTargetPullRequests.some((pr) => pr.state !== 'MERGED');
+}
+exports.filterUnmergedCommits = filterUnmergedCommits;
+
+
+/***/ }),
+
 /***/ 8336:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -15042,7 +15111,7 @@ exports.maybe = maybe;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PACKAGE_VERSION = void 0;
-exports.PACKAGE_VERSION = '7.3.2';
+exports.PACKAGE_VERSION = '7.3.5';
 
 
 /***/ }),
