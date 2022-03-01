@@ -30,7 +30,7 @@ describe('run', () => {
       accessToken: 'very-secret',
       assignees: ['sqren'],
       branchLabelMapping: {
-        '^backport-to--(.+)$': '$1',
+        '^backport-to-(.+)$': '$1',
       },
       ci: true,
       pullNumber: 1345,

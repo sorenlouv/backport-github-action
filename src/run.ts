@@ -22,7 +22,7 @@ export async function run({
 
   const branchLabelMapping =
     inputs.autoBackportLabelPrefix !== ''
-      ? { [`^${inputs.autoBackportLabelPrefix}-(.+)$`]: '$1' }
+      ? { [`^${inputs.autoBackportLabelPrefix}(.+)$`]: '$1' }
       : undefined;
 
   const repoForkOwner =
@@ -50,6 +50,8 @@ export async function run({
     repoName: repo.repo,
     repoOwner: repo.owner,
   });
+
+  console.log('Result', JSON.stringify(result, null, 2));
 
   return result;
 }

@@ -20,6 +20,7 @@ run({
   .then((res) => {
     core.setOutput('Result', res);
     if (res.status === 'failure') {
+      console.error('Received backport response with errors');
       core.setFailed(res.errorMessage);
     }
   })

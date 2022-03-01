@@ -117714,6 +117714,7 @@ const run_1 = __nccwpck_require__(7764);
     .then((res) => {
     core.setOutput('Result', res);
     if (res.status === 'failure') {
+        console.error('Received backport response with errors');
         core.setFailed(res.errorMessage);
     }
 })
@@ -117740,7 +117741,7 @@ async function run({ context, inputs, }) {
         throw Error('Only pull_request events are supported.');
     }
     const branchLabelMapping = inputs.autoBackportLabelPrefix !== ''
-        ? { [`^${inputs.autoBackportLabelPrefix}-(.+)$`]: '$1' }
+        ? { [`^${inputs.autoBackportLabelPrefix}(.+)$`]: '$1' }
         : undefined;
     const repoForkOwner = inputs.repoForkOwner !== '' ? inputs.repoForkOwner : repo.owner;
     // payload params
@@ -117763,6 +117764,7 @@ async function run({ context, inputs, }) {
         repoName: repo.repo,
         repoOwner: repo.owner,
     });
+    console.log('Result', JSON.stringify(result, null, 2));
     return result;
 }
 exports.run = run;

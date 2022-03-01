@@ -24,10 +24,10 @@ jobs:
       )
     steps:
       - name: Backport Action
-        uses: sqren/backport-github-action@v7.3.1-2
+        uses: sqren/backport-github-action@v7.3.1-3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          auto_backport_label_prefix: backport-to
+          auto_backport_label_prefix: backport-to-
 
       - name: Backport log
         run: cat /home/runner/.backport/backport.log
