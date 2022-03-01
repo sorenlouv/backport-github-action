@@ -117714,6 +117714,7 @@ const run_1 = __nccwpck_require__(7764);
     .then((res) => {
     core.setOutput('Result', res);
     if (res.status === 'failure') {
+        console.error('Received backport response with errors');
         core.setFailed(res.errorMessage);
     }
 })
@@ -117763,6 +117764,7 @@ async function run({ context, inputs, }) {
         repoName: repo.repo,
         repoOwner: repo.owner,
     });
+    console.log('Result', JSON.stringify(result, null, 2));
     return result;
 }
 exports.run = run;
