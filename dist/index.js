@@ -11177,13 +11177,14 @@ const getGitConfigAuthor_1 = __nccwpck_require__(35134);
 const getTargetBranches_1 = __nccwpck_require__(25740);
 const ora_1 = __nccwpck_require__(25090);
 const setupRepo_1 = __nccwpck_require__(97924);
-async function backportRun(processArgs, optionsFromModule = {}) {
+async function backportRun({ processArgs, optionsFromModule = {}, isCliMode, }) {
     const argv = (0, yargs_parser_1.default)(processArgs);
     const ci = argv.ci ?? optionsFromModule.ci;
+    const ls = argv.ls ?? optionsFromModule.ls;
     const logFilePath = argv.logFilePath ?? optionsFromModule.logFilePath;
-    (0, logger_1.initLogger)({ ci, logFilePath });
-    // don't show spinner for yargs commands that exit the process without stopping the spinner first
+    const logger = (0, logger_1.initLogger)({ ci, logFilePath });
     const spinner = (0, ora_1.ora)(ci);
+    // don't show spinner for yargs commands that exit the process without stopping the spinner first
     if (!argv.help && !argv.version && !argv.v) {
         spinner.start('Initializing...');
     }
@@ -11191,10 +11192,10 @@ async function backportRun(processArgs, optionsFromModule = {}) {
     let commits = [];
     try {
         options = await (0, options_1.getOptions)(processArgs, optionsFromModule);
-        logger_1.logger.info('Backporting options', options);
+        logger.info('Backporting options', options);
         spinner.stop();
         commits = await (0, getCommits_1.getCommits)(options);
-        logger_1.logger.info('Commits', commits);
+        logger.info('Commits', commits);
         if (options.ls) {
             return {
                 status: 'success',
@@ -11203,7 +11204,7 @@ async function backportRun(processArgs, optionsFromModule = {}) {
             };
         }
         const targetBranches = await (0, getTargetBranches_1.getTargetBranches)(options, commits);
-        logger_1.logger.info('Target branches', targetBranches);
+        logger.info('Target branches', targetBranches);
         const [gitConfigAuthor] = await Promise.all([
             (0, getGitConfigAuthor_1.getGitConfigAuthor)(options),
             (0, setupRepo_1.setupRepo)(options),
@@ -11214,7 +11215,7 @@ async function backportRun(processArgs, optionsFromModule = {}) {
             targetBranches,
             gitConfigAuthor,
         });
-        logger_1.logger.info('Results', results);
+        logger.info('Results', results);
         const backportResponse = {
             status: 'success',
             commits,
@@ -11240,11 +11241,13 @@ async function backportRun(processArgs, optionsFromModule = {}) {
                 backportResponse,
             });
         }
-        if (!options?.ls) {
+        if (!ls) {
             outputError({ e, logFilePath });
         }
-        logger_1.logger.error('Unhandled exception', e);
-        process.exitCode = 1;
+        logger.error('Unhandled exception', e);
+        if (isCliMode && isCriticalError(e)) {
+            process.exitCode = 1;
+        }
         return backportResponse;
     }
 }
@@ -11264,6 +11267,13 @@ function outputError({ e, logFilePath, }) {
             logFilePath,
         })}`));
     }
+}
+function isCriticalError(e) {
+    if (e instanceof HandledError_1.HandledError &&
+        e.errorContext.code === 'no-branches-exception') {
+        return false;
+    }
+    return true;
 }
 
 
@@ -11297,7 +11307,11 @@ function backportRun(options,
 // backportRun(options, args)
 //
 processArgs = []) {
-    return (0, backportRun_1.backportRun)(processArgs, (0, excludeUndefined_1.excludeUndefined)(options));
+    return (0, backportRun_1.backportRun)({
+        processArgs,
+        optionsFromModule: (0, excludeUndefined_1.excludeUndefined)(options),
+        isCliMode: false,
+    });
 }
 exports.backportRun = backportRun;
 async function getCommits(options) {
@@ -11354,6 +11368,7 @@ const yargs_1 = __importDefault(__nccwpck_require__(18822));
 const excludeUndefined_1 = __nccwpck_require__(84779);
 function getOptionsFromCliArgs(processArgs, { exitOnError = true } = {}) {
     const yargsInstance = (0, yargs_1.default)(processArgs)
+        .strict()
         .parserConfiguration({
         'strip-dashed': true,
         'strip-aliased': true,
@@ -11409,7 +11424,7 @@ function getOptionsFromCliArgs(processArgs, { exitOnError = true } = {}) {
         type: 'boolean',
         conflicts: ['noCherrypickRef'],
     })
-        .option('configFile', {
+        .option('projectConfigFile', {
         alias: 'config',
         description: 'Path to project config',
         type: 'string',
@@ -11585,11 +11600,13 @@ function getOptionsFromCliArgs(processArgs, { exitOnError = true } = {}) {
         conflicts: ['noFork'],
     })
         .option('repoOwner', {
+        hidden: true,
         description: 'Repository owner',
         type: 'string',
         conflicts: ['repo'],
     })
         .option('repoName', {
+        hidden: true,
         description: 'Repository name',
         type: 'string',
         conflicts: ['repo'],
@@ -11632,17 +11649,12 @@ function getOptionsFromCliArgs(processArgs, { exitOnError = true } = {}) {
         type: 'array',
         string: true,
     })
-        .option('verbose', {
-        description: 'Show additional debug information',
-        type: 'boolean',
-    })
         // cli-only
         .option('verify', {
         description: `Opposite of no-verify`,
         type: 'boolean',
     })
         .alias('version', 'v')
-        .alias('version', 'V')
         .help()
         .epilogue('For bugs, feature requests or questions: https://github.com/sqren/backport/issues\nOr contact me directly: https://twitter.com/sorenlouv');
     // don't kill process upon error
@@ -11718,9 +11730,9 @@ async function getOptionsFromConfigFiles({ optionsFromCliArgs, optionsFromModule
     // ci: cli and module only flag
     const ci = optionsFromCliArgs.ci ?? optionsFromModule.ci ?? defaultConfigOptions.ci;
     // ci: cli and module only flag
-    const configFile = optionsFromCliArgs.configFile ?? optionsFromModule.configFile;
+    const projectConfigFile = optionsFromCliArgs.projectConfigFile ?? optionsFromModule.projectConfigFile;
     const [projectConfig, globalConfig] = await Promise.all([
-        (0, projectConfig_1.getProjectConfig)({ configFile }),
+        (0, projectConfig_1.getProjectConfig)({ projectConfigFile }),
         ci ? undefined : (0, globalConfig_1.getGlobalConfig)(),
     ]);
     return {
@@ -11814,9 +11826,9 @@ exports.getProjectConfig = void 0;
 const path_1 = __importDefault(__nccwpck_require__(71017));
 const find_up_1 = __importDefault(__nccwpck_require__(21786));
 const readConfigFile_1 = __nccwpck_require__(83262);
-async function getProjectConfig({ configFile, }) {
-    const filepath = configFile
-        ? path_1.default.resolve(configFile)
+async function getProjectConfig({ projectConfigFile, }) {
+    const filepath = projectConfigFile
+        ? path_1.default.resolve(projectConfigFile)
         : await (0, find_up_1.default)('.backportrc.json');
     if (!filepath) {
         return;
@@ -11925,7 +11937,6 @@ const defaultConfigOptions = {
     targetBranchChoices: [],
     targetBranches: [],
     targetPRLabels: [],
-    verbose: false,
 };
 async function getOptions(processArgs, optionsFromModule) {
     const optionsFromCliArgs = (0, cliArgs_1.getOptionsFromCliArgs)(processArgs);
@@ -11941,7 +11952,7 @@ async function getOptions(processArgs, optionsFromModule) {
     });
     const { accessToken, repoName, repoOwner } = await getRequiredOptions(combined);
     // update logger
-    (0, logger_1.updateLogger)({ accessToken, verbose: combined.verbose });
+    (0, logger_1.setAccessToken)(accessToken);
     const optionsFromGithub = await (0, getOptionsFromGithub_1.getOptionsFromGithub)({
         ...combined,
         // required options
@@ -12012,7 +12023,6 @@ function throwForRequiredOptions(options) {
         'author',
         'autoMergeMethod',
         'backportBinary',
-        'configFile',
         'dir',
         'editor',
         'gitHostname',
@@ -12021,6 +12031,7 @@ function throwForRequiredOptions(options) {
         'logFilePath',
         'prDescription',
         'prFilter',
+        'projectConfigFile',
         'prTitle',
         'repoForkOwner',
         'repoName',
@@ -12080,7 +12091,6 @@ async function runSequentially({ options, commits, targetBranches, gitConfigAuth
             });
         }
         catch (e) {
-            process.exitCode = 1;
             results.push({
                 targetBranch,
                 status: 'failure',
@@ -12106,28 +12116,28 @@ exports.runSequentially = runSequentially;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.HandledError = void 0;
 function getMessage(errorContext) {
-    if (typeof errorContext === 'string') {
-        return errorContext;
-    }
     switch (errorContext.code) {
         case 'merge-conflict-exception':
-            return `Commit could not be cherrypicked due to conflicts`;
+            return `Commit could not be cherrypicked due to conflicts in: ${errorContext.conflictingFiles.join(',')}`;
         case 'no-branches-exception':
             return 'There are no branches to backport to. Aborting.';
         case 'abort-exception':
             return 'Aborted';
+        case 'custom-exception':
+            return errorContext.message;
     }
 }
 class HandledError extends Error {
-    constructor(errorContext) {
+    constructor(errorContextOrString) {
+        const errorContext = typeof errorContextOrString === 'string'
+            ? { code: 'custom-exception', message: errorContextOrString }
+            : errorContextOrString;
         const message = getMessage(errorContext);
         super(message);
         Error.captureStackTrace(this, HandledError);
         this.name = 'HandledError';
         this.message = message;
-        if (typeof errorContext !== 'string') {
-            this.errorContext = errorContext;
-        }
+        this.errorContext = errorContext;
     }
 }
 exports.HandledError = HandledError;
@@ -12432,10 +12442,6 @@ async function cherrypick({ options, sha, mergedTargetPullRequest, commitAuthor,
             throw new HandledError_1.HandledError(`Cherrypick failed because the selected commit (${shortSha}) is empty. ${mergedTargetPullRequest?.url
                 ? `It looks like the commit was already backported in ${mergedTargetPullRequest.url}`
                 : 'Did you already backport this commit? '}`);
-        }
-        // git info missing
-        if (e.message.includes('Please tell me who you are')) {
-            throw new HandledError_1.HandledError(e.message);
         }
         if (e.message.includes(`bad object ${sha}`)) {
             throw new HandledError_1.HandledError(`Cherrypick failed because commit "${sha}" was not found`);
@@ -12904,7 +12910,7 @@ function getCommentBody({ options, pullNumber, backportResponse, }) {
     const questionsAndLinkToBackport = '\n\n### Questions ?\nPlease refer to the [Backport tool documentation](https://github.com/sqren/backport)';
     if (backportResponse.status === 'failure') {
         if (backportResponse.error instanceof HandledError_1.HandledError &&
-            backportResponse.error.errorContext?.code === 'no-branches-exception') {
+            backportResponse.error.errorContext.code === 'no-branches-exception') {
             return `## ⚪ Backport skipped
 The pull request was not backported as there were no branches to backport to. If this is a mistake, please apply the desired version labels or run the backport tool manually.
 ${manualBackportCommand}${questionsAndLinkToBackport}${packageVersionSection}`;
@@ -12927,7 +12933,8 @@ ${manualBackportCommand}${questionsAndLinkToBackport}${packageVersionSection}`;
                 `[<img src="https://img.shields.io/github/pulls/detail/state/${repoOwner}/${repoName}/${result.pullRequestNumber}">](${result.pullRequestUrl})`,
             ];
         }
-        if (result.error.errorContext?.code === 'merge-conflict-exception') {
+        if (result.error instanceof HandledError_1.HandledError &&
+            result.error.errorContext.code === 'merge-conflict-exception') {
             const unmergedBackports = result.error.errorContext.commitsWithoutBackports.map((c) => {
                 return ` - [${(0, commitFormatters_1.getFirstLine)(c.commit.sourceCommit.message)}](${c.commit.sourcePullRequest?.url})`;
             });
@@ -13071,7 +13078,6 @@ async function apiRequestV4({ githubApiBaseUrlV4 = 'https://api.github.com/graph
             query,
             variables,
             githubResponse: response,
-            didSucceed: false,
         });
         return response.data.data;
     }
@@ -13082,7 +13088,6 @@ async function apiRequestV4({ githubApiBaseUrlV4 = 'https://api.github.com/graph
                 query,
                 variables,
                 githubResponse: e.response,
-                didSucceed: false,
             });
             throw new GithubV4Exception(e.response, e.message);
         }
@@ -13090,15 +13095,14 @@ async function apiRequestV4({ githubApiBaseUrlV4 = 'https://api.github.com/graph
     }
 }
 exports.apiRequestV4 = apiRequestV4;
-function addDebugLogs({ githubApiBaseUrlV4, query, variables, githubResponse, didSucceed, }) {
+function addDebugLogs({ githubApiBaseUrlV4, query, variables, githubResponse, }) {
     const gqlQueryName = getQueryName(query);
     logger_1.logger.info(`POST ${githubApiBaseUrlV4} (name:${gqlQueryName}, status: ${githubResponse.status})`);
-    const logMethod = didSucceed ? logger_1.logger.verbose : logger_1.logger.info;
-    logMethod(`Query name ${gqlQueryName}`);
-    logMethod(`Query: ${query}`);
-    logMethod('Variables:', variables);
-    logMethod('Response headers:', githubResponse.headers);
-    logMethod('Response data:', githubResponse.data);
+    logger_1.logger.info(`Query name ${gqlQueryName}`);
+    logger_1.logger.info(`Query: ${query}`);
+    logger_1.logger.info('Variables:', variables);
+    logger_1.logger.info('Response headers:', githubResponse.headers);
+    logger_1.logger.info('Response data:', githubResponse.data);
 }
 class GithubV4Exception extends Error {
     constructor(githubResponse, errorMessage) {
@@ -13926,17 +13930,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.updateLogger = exports.consoleLog = exports.initLogger = exports.logger = void 0;
+exports.setAccessToken = exports.consoleLog = exports.initLogger = exports.logger = void 0;
 const winston_1 = __importStar(__nccwpck_require__(4158));
 const redact_1 = __nccwpck_require__(37832);
 const env_1 = __nccwpck_require__(34222);
 let _accessToken;
 let _ci;
 function initLogger({ ci, accessToken, logFilePath, }) {
-    const fileTransport = getFileTransport({ logFilePath });
-    if (accessToken) {
-        _accessToken = accessToken;
-    }
+    _accessToken = accessToken;
     _ci = ci;
     exports.logger = winston_1.default.createLogger({
         format: winston_1.format.combine(winston_1.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), 
@@ -13944,7 +13945,11 @@ function initLogger({ ci, accessToken, logFilePath, }) {
         winston_1.format.metadata({
             fillExcept: ['message', 'level', 'timestamp', 'label'],
         })),
-        transports: fileTransport,
+        transports: new winston_1.default.transports.File({
+            filename: (0, env_1.getLogfilePath)({ logFilePath }),
+            level: 'debug',
+            format: winston_1.format.combine(winston_1.format.json()),
+        }),
     });
     return exports.logger;
 }
@@ -13957,26 +13962,16 @@ function consoleLog(message) {
     }
 }
 exports.consoleLog = consoleLog;
-function updateLogger({ accessToken, verbose, }) {
-    // set access token
+function setAccessToken(accessToken) {
     _accessToken = accessToken;
-    // set log level
-    exports.logger.level = verbose ? 'debug' : 'info';
 }
-exports.updateLogger = updateLogger;
+exports.setAccessToken = setAccessToken;
 function redactAccessToken(str) {
     // `redactAccessToken` might be called before access token is set
     if (_accessToken) {
         return (0, redact_1.redact)(_accessToken, str);
     }
     return str;
-}
-function getFileTransport({ logFilePath }) {
-    return new winston_1.default.transports.File({
-        filename: (0, env_1.getLogfilePath)({ logFilePath }),
-        level: 'debug',
-        format: winston_1.format.combine(winston_1.format.json()),
-    });
 }
 // log levels:
 // - error
@@ -14593,16 +14588,20 @@ async function waitForCherrypick(options, commit, targetBranch, gitConfigAuthor)
         }
         autoResolveSpinner.fail();
     }
+    const conflictingFilesRelative = conflictingFiles
+        .map((f) => f.relative)
+        .slice(0, 50);
     const commitsWithoutBackports = await (0, getCommitsWithoutBackports_1.getCommitsWithoutBackports)({
         options,
         commit,
         targetBranch,
-        conflictingFiles: conflictingFiles.map((f) => f.relative).slice(0, 50),
+        conflictingFiles: conflictingFilesRelative,
     });
     if (options.ci) {
         throw new HandledError_1.HandledError({
             code: 'merge-conflict-exception',
             commitsWithoutBackports,
+            conflictingFiles: conflictingFilesRelative,
         });
     }
     (0, logger_1.consoleLog)(chalk_1.default.bold('\nThe commit could not be backported due to conflicts\n'));
@@ -14654,13 +14653,13 @@ async function listConflictingAndUnstagedFiles({ retries, options, conflictingFi
     const unstagedSection = hasUnstagedFiles
         ? `Unstaged files:\n${chalk_1.default.reset(unstagedFiles.map((file) => ` - ${file}`).join('\n'))}`
         : '';
-    const res = await (0, prompts_1.confirmPrompt)(`${header}
+    const didConfirm = await (0, prompts_1.confirmPrompt)(`${header}
 
 ${conflictSection}
 ${unstagedSection}
 
 Press ENTER when the conflicts are resolved and files are staged`);
-    if (!res) {
+    if (!didConfirm) {
         throw new HandledError_1.HandledError({ code: 'abort-exception' });
     }
     const MAX_RETRIES = 100;
@@ -15111,7 +15110,7 @@ exports.maybe = maybe;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PACKAGE_VERSION = void 0;
-exports.PACKAGE_VERSION = '7.3.5';
+exports.PACKAGE_VERSION = '7.4.0';
 
 
 /***/ }),
