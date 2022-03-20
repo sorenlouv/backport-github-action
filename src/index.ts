@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import * as core from '@actions/core';
 import { context } from '@actions/github';
-import { run } from './run';
+import { getFailureMessage, run } from './run';
 
 run({
   context,
@@ -19,9 +19,9 @@ run({
 })
   .then((res) => {
     core.setOutput('Result', res);
-    if (res.status === 'failure') {
-      console.error('Received backport response with errors');
-      core.setFailed(res.errorMessage);
+    const failureMessage = getFailureMessage(res);
+    if (failureMessage) {
+      core.setFailed(failureMessage);
     }
   })
   .catch((error) => {
