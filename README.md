@@ -30,6 +30,7 @@ jobs:
           auto_backport_label_prefix: backport-to-
 
       - name: Backport log
+        if: always()
         run: cat /home/runner/.backport/backport.log
           
 ```

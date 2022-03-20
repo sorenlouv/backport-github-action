@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { Context } from '@actions/github/lib/context';
-import { backportRun } from 'backport';
+import { BackportResponse, backportRun, UnhandledErrorResult } from 'backport';
 
 export async function run({
   context,
@@ -41,17 +41,42 @@ export async function run({
   });
 
   const result = await backportRun({
-    accessToken: inputs.accessToken,
-    assignees,
-    branchLabelMapping,
-    ci: true,
-    pullNumber,
-    repoForkOwner,
-    repoName: repo.repo,
-    repoOwner: repo.owner,
+    options: {
+      accessToken: inputs.accessToken,
+      assignees,
+      branchLabelMapping,
+      publishStatusCommentOnFailure: true,
+      pullNumber,
+      repoForkOwner,
+      repoName: repo.repo,
+      repoOwner: repo.owner,
+    },
+    exitCodeOnFailure: false,
   });
 
   console.log('Result', JSON.stringify(result, null, 2));
 
   return result;
+}
+
+export function getFailureMessage(res: BackportResponse) {
+  switch (res.status) {
+    case 'failure':
+    case 'aborted':
+      return res.errorMessage;
+
+    case 'success': {
+      const unhandledErrorResults = res.results.filter(
+        (res): res is UnhandledErrorResult => res.status === 'unhandled-error'
+      );
+
+      // only return message if there are unhandled errors
+      // handled errors should not be output
+      if (unhandledErrorResults.length > 0) {
+        return `Unhandled errors: ${unhandledErrorResults
+          .map((res) => res.error.message)
+          .join(', ')}`;
+      }
+    }
+  }
 }
