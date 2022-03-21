@@ -1,4 +1,7 @@
 {
+  "name": "backport-github-action",
+  "version": "8.1.0",
+  "private": true,
   "scripts": {
     "build": "yarn ncc build src/index.ts",
     "prepare": "husky install",
@@ -36,6 +39,5 @@
   },
   "lint-staged": {
     "*.ts": "eslint --cache --fix"
-  },
-  "version": "7.4.0"
+  }  
 }
