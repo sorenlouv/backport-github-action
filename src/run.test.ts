@@ -116,7 +116,9 @@ describe('getFailureMessage', () => {
         error: e,
         errorMessage: e.message,
       };
-      expect(getFailureMessage(res)).toBe('Aborted');
+      expect(getFailureMessage(res)).toBe(
+        'Conflict resolution was aborted by the user'
+      );
     });
   });
 });

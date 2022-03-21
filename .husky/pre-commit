@@ -13,3 +13,4 @@ else
     echo "Compiled changes"
 fi
 
+yarn test
