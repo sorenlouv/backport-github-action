@@ -37,5 +37,5 @@
   "lint-staged": {
     "*.ts": "eslint --cache --fix"
   },
-  "version": "7.4.0"
+  "version": "8.1.0"
 }
