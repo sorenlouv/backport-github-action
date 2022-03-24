@@ -1,6 +1,6 @@
 {
   "name": "backport-github-action",
-  "version": "8.1.0",
+  "version": "8.2.0",
   "private": true,
   "scripts": {
     "build": "yarn ncc build src/index.ts",
@@ -15,7 +15,7 @@
     "@actions/github": "^5.0.0",
     "@octokit/action": "^3.18.0",
     "@octokit/graphql": "^4.8.0",
-    "backport": "^8.1.0",
+    "backport": "^8.2.0",
     "husky": "^7.0.4"
   },
   "devDependencies": {
@@ -39,5 +39,5 @@
   },
   "lint-staged": {
     "*.ts": "eslint --cache --fix"
-  }  
+  }
 }
