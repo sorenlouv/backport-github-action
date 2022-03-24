@@ -34,6 +34,7 @@ describe('run', () => {
         branchLabelMapping: {
           '^backport-to-(.+)$': '$1',
         },
+        interactive: false,
         publishStatusCommentOnFailure: true,
         pullNumber: 1345,
         repoForkOwner: 'elastic',

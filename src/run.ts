@@ -45,6 +45,7 @@ export async function run({
       accessToken: inputs.accessToken,
       assignees,
       branchLabelMapping,
+      interactive: false,
       publishStatusCommentOnFailure: true,
       pullNumber,
       repoForkOwner,
