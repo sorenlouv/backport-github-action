@@ -5,7 +5,7 @@ on:
     inputs:
       package_version:
         description: Package version
-        type: number
+        type: string
         required: true
 
 jobs:
