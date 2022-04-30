@@ -1,0 +1,28 @@
+name: bump-npm-version
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_version:
+        description: Package version
+        type: number
+        required: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+      - run: git config --global user.email "backportci@users.noreply.github.com "
+      - run: git config --global user.name "Backport CI"          
+      - run: yarn version --new-version ${{ github.event.inputs.package_version }}
+      - run: git push --follow-tags
