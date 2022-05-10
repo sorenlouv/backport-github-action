@@ -16,7 +16,7 @@
     "@octokit/action": "^3.18.0",
     "@octokit/graphql": "^4.8.0",
     "backport": "^8.4.0",
-    "husky": "^7.0.4"
+    "husky": "^8.0.1"
   },
   "devDependencies": {
     "@types/core-js": "^2.5.5",
