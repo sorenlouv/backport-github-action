@@ -7,9 +7,7 @@ Create a file `/.github/workflows/backport.yml` with the following content:
 ```yml
 on:
   pull_request_target:
-    types:
-      - labeled
-      - closed
+    types: ["labeled", "closed"]
 
 jobs:
   backport:
