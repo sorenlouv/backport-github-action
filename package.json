@@ -22,7 +22,7 @@
     "@types/core-js": "^2.5.5",
     "@types/jest": "^28.1.1",
     "@types/node": "^18.0.0",
-    "@typescript-eslint/eslint-plugin": "^5.28.0",
+    "@typescript-eslint/eslint-plugin": "^5.29.0",
     "@typescript-eslint/parser": "^5.28.0",
     "@vercel/ncc": "^0.34.0",
     "eslint": "^8.17.0",
