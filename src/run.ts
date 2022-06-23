@@ -20,7 +20,7 @@ export async function run({
     throw Error('Only pull_request events are supported.');
   }
 
-  console.log('context', JSON.stringify(context));
+  console.log('context22', JSON.stringify(context));
 
   // if (pullRequest.merged && pullRequest.labels) {
   // }
