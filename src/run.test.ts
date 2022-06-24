@@ -19,6 +19,8 @@ describe('run', () => {
         repo: { owner: 'elastic', repo: 'kibana' },
         payload: {
           pull_request: {
+            labels: [],
+            merged: true,
             number: 1345,
             user: { login: 'sqren' },
           },
@@ -41,6 +43,88 @@ describe('run', () => {
         repoName: 'kibana',
         repoOwner: 'elastic',
       },
+    });
+  });
+
+  it('skips if pull request is not merged', async () => {
+    const res = await run({
+      inputs: {
+        accessToken: 'very-secret',
+        autoBackportLabelPrefix: 'backport-to-',
+        repoForkOwner: '',
+      },
+      context: {
+        repo: { owner: 'elastic', repo: 'kibana' },
+        payload: {
+          action: 'closed',
+          pull_request: {
+            labels: [],
+            merged: false,
+            number: 1345,
+            user: { login: 'sqren' },
+          },
+        },
+      } as unknown as Context,
+    });
+
+    expect(res).toEqual({
+      message: 'Pull request is not merged. Skipping',
+      status: 'skipped',
+    });
+  });
+
+  it('skips if there are no backport labels when merging the issue', async () => {
+    const res = await run({
+      inputs: {
+        accessToken: 'very-secret',
+        autoBackportLabelPrefix: 'backport-to-',
+        repoForkOwner: '',
+      },
+      context: {
+        repo: { owner: 'elastic', repo: 'kibana' },
+        payload: {
+          action: 'closed',
+          pull_request: {
+            labels: [],
+            merged: true,
+            number: 1345,
+            user: { login: 'sqren' },
+          },
+        },
+      } as unknown as Context,
+    });
+
+    expect(res).toEqual({
+      message: 'The pull request does not have any backport labels. Skipping',
+      status: 'skipped',
+    });
+  });
+
+  it('skips if the added label is not a backport label', async () => {
+    const res = await run({
+      inputs: {
+        accessToken: 'very-secret',
+        autoBackportLabelPrefix: 'backport-to-',
+        repoForkOwner: '',
+      },
+      context: {
+        repo: { owner: 'elastic', repo: 'kibana' },
+        payload: {
+          action: 'labeled',
+          label: { name: 'foo' },
+          pull_request: {
+            labels: [],
+            merged: true,
+            number: 1345,
+            user: { login: 'sqren' },
+          },
+        },
+      } as unknown as Context,
+    });
+
+    expect(res).toEqual({
+      message: 'Applied label "foo" is not a backport label. Skipping',
+      status: 'skipped',
     });
   });
 });
