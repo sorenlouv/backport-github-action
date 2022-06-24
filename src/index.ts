@@ -18,7 +18,9 @@ run({
   },
 })
   .then((res) => {
-    core.setOutput('Result', res);
+    core.setOutput('Result', '123456TEST');
+    console.log('Result', JSON.stringify(res, null, 2));
+
     const failureMessage = getFailureMessage(res);
     if (failureMessage) {
       core.setFailed(failureMessage);

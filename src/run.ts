@@ -92,8 +92,6 @@ export async function run({
     exitCodeOnFailure: false,
   });
 
-  console.log('Result', JSON.stringify(result, null, 2));
-
   return result;
 }
 
