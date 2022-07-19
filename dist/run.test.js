@@ -55,6 +55,7 @@ describe('run', () => {
                 branchLabelMapping: {
                     '^backport-to-(.+)$': '$1',
                 },
+                interactive: false,
                 publishStatusCommentOnFailure: true,
                 pullNumber: 1345,
                 repoForkOwner: 'elastic',
@@ -119,7 +120,7 @@ describe('getFailureMessage', () => {
             expect((0, run_1.getFailureMessage)(res)).toBe('My failure');
         });
     });
-    describe.only('aborted', () => {
+    describe('aborted', () => {
         it('should error message', () => {
             const e = new backport.BackportError({
                 code: 'abort-conflict-resolution-exception',
@@ -130,7 +131,7 @@ describe('getFailureMessage', () => {
                 error: e,
                 errorMessage: e.message,
             };
-            expect((0, run_1.getFailureMessage)(res)).toBe('Aborted');
+            expect((0, run_1.getFailureMessage)(res)).toBe('Conflict resolution was aborted by the user');
         });
     });
 });
