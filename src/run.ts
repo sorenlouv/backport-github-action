@@ -13,7 +13,7 @@ export async function run({
     repoForkOwner: string;
   };
 }) {
-  const { payload, repo } = context;
+  const { payload, repo, runId } = context;
   const pullRequest = payload.pull_request;
 
   if (!pullRequest) {
@@ -45,6 +45,7 @@ export async function run({
       accessToken: inputs.accessToken,
       assignees,
       branchLabelMapping,
+      githubActionRunId: runId,
       interactive: false,
       publishStatusCommentOnFailure: true,
       pullNumber,

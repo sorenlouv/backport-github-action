@@ -27,6 +27,7 @@ async function run({ context, inputs, }) {
             accessToken: inputs.accessToken,
             assignees,
             branchLabelMapping,
+            interactive: false,
             publishStatusCommentOnFailure: true,
             pullNumber,
             repoForkOwner,
