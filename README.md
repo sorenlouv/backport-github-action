@@ -29,11 +29,11 @@ jobs:
 
       - name: Info log
         if: ${{ success() }}
-        run: cat /home/runner/.backport/backport.info.log
+        run: cat ~/.backport/backport.info.log
         
       - name: Debug log
         if: ${{ failure() }}
-        run: cat /home/runner/.backport/backport.debug.log        
+        run: cat ~/.backport/backport.debug.log        
           
 ```
 
