@@ -42,6 +42,7 @@ export async function run({
 
   const result = await backportRun({
     options: {
+      gitHostname: context.serverUrl.replace(/^https{0,1}:\/\//, ''),
       accessToken: inputs.accessToken,
       assignees,
       branchLabelMapping,
@@ -52,6 +53,8 @@ export async function run({
       repoForkOwner,
       repoName: repo.repo,
       repoOwner: repo.owner,
+      githubApiBaseUrlV3: context.apiUrl,
+      githubApiBaseUrlV4: context.graphqlUrl,
     },
     exitCodeOnFailure: false,
   });
