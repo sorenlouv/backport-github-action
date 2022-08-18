@@ -23,6 +23,9 @@ describe('run', () => {
             user: { login: 'sqren' },
           },
         },
+        serverUrl: 'https://github.my-own-enterprise.com',
+        apiUrl: 'https://github.my-own-enterprise.com/api/v3',
+        graphqlUrl: 'https://github.my-own-enterprise.com/api/graphql',
       } as unknown as Context,
     });
 
@@ -40,6 +43,10 @@ describe('run', () => {
         repoForkOwner: 'elastic',
         repoName: 'kibana',
         repoOwner: 'elastic',
+        gitHostname: 'github.my-own-enterprise.com',
+        githubActionRunId: undefined,
+        githubApiBaseUrlV3: 'https://github.my-own-enterprise.com/api/v3',
+        githubApiBaseUrlV4: 'https://github.my-own-enterprise.com/api/graphql',
       },
     });
   });
