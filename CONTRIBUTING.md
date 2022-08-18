@@ -1,0 +1,8 @@
+# Contributing
+
+Build
+```
+yarn build
+```
+
+
