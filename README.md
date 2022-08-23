@@ -61,5 +61,5 @@ For more fine grained customization, and for the ability to run the [Backport To
 ```
 
 
- See the [Backport Tool documentation](https://github.com/sqren/backport/blob/main/docs/configuration.md) for all configuration options.
+ See the [Backport Tool documentation](https://github.com/sqren/backport#documentation) for all configuration options.
 
