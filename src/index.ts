@@ -15,6 +15,9 @@ run({
     repoForkOwner: core.getInput('repo_fork_owner', {
       required: false,
     }),
+    addOriginalReviewers: core.getBooleanInput('add_original_reviewers', {
+      required: false,
+    }),
   },
 })
   .then((res) => {

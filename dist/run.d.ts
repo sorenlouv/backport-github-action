@@ -6,6 +6,7 @@ export declare function run({ context, inputs, }: {
         accessToken: string;
         autoBackportLabelPrefix: string;
         repoForkOwner: string;
+        addOriginalReviewers: boolean;
     };
 }): Promise<BackportResponse>;
 export declare function getFailureMessage(res: BackportResponse): string | undefined;
