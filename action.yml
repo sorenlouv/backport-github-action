@@ -10,6 +10,9 @@ inputs:
   repo_fork_owner:
     description: The owner of the repo where the backport branch will be pushed to. Defaults to the current repo
     required: false
+  add_original_reviewers:
+    description: Boolean, if set to true the reviewers of the original PR will also be added to the backport PRs
+    required: false
 runs:
   using: 'node16'
   main: 'dist/index.js'
