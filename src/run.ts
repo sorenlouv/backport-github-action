@@ -32,15 +32,14 @@ export async function run({
   // payload params
   const pullNumber = pullRequest.number;
   const assignees = [pullRequest.user.login];
-  let reviewers: string[] | undefined = undefined;
-  if (
-    inputs.addOriginalReviewers &&
-    Array.isArray(pullRequest.requested_reviewers)
-  ) {
-    reviewers = pullRequest.requested_reviewers.map(
-      (reviewer) => reviewer.login
-    );
-  }
+  const requestedReviewers = pullRequest.requested_reviewers as
+    | Array<{ login: string }>
+    | undefined;
+
+  const reviewers =
+    inputs.addOriginalReviewers && Array.isArray(requestedReviewers)
+      ? requestedReviewers.map((reviewer) => reviewer.login)
+      : [];
 
   console.log({
     assignees,
