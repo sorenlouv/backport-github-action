@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+import * as core from '@actions/core';
 import { Context } from '@actions/github/lib/context';
 import { BackportResponse, backportRun, UnhandledErrorResult } from 'backport';
 
@@ -14,6 +14,8 @@ export async function run({
     addOriginalReviewers: boolean;
   };
 }) {
+  core.info('Initiate backport');
+
   const { payload, repo, runId } = context;
   const pullRequest = payload.pull_request;
 
@@ -41,18 +43,19 @@ export async function run({
       ? requestedReviewers.map((reviewer) => reviewer.login)
       : [];
 
-  console.log({
-    assignees,
-    branchLabelMapping,
-    pullNumber,
-    repo,
-    repoForkOwner,
-    reviewers,
-  });
+  core.info(
+    JSON.stringify({
+      assignees,
+      branchLabelMapping,
+      pullNumber,
+      repo,
+      repoForkOwner,
+      reviewers,
+    })
+  );
 
   // support for Github enterprise
   const gitHostname = context.serverUrl.replace(/^https{0,1}:\/\//, '');
-
   const result = await backportRun({
     options: {
       gitHostname,
@@ -73,8 +76,7 @@ export async function run({
     exitCodeOnFailure: false,
   });
 
-  console.log('Result', JSON.stringify(result, null, 2));
-
+  core.info(`Result ${JSON.stringify(result, null, 2)}`);
   return result;
 }
 

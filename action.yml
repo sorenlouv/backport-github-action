@@ -13,6 +13,7 @@ inputs:
   add_original_reviewers:
     description: Boolean, if set to true the reviewers of the original PR will also be added to the backport PRs
     required: false
+    default: false
 runs:
   using: 'node16'
   main: 'dist/index.js'

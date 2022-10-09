@@ -1,3 +1,4 @@
+import * as core from '@actions/core';
 import { Context } from '@actions/github/lib/context';
 import * as backport from 'backport';
 import { getFailureMessage, run } from './run';
@@ -8,6 +9,9 @@ describe('run', () => {
       .spyOn(backport, 'backportRun')
       // @ts-expect-error
       .mockResolvedValue('backport return value');
+
+    // disable logs
+    jest.spyOn(core, 'info').mockReturnValue();
 
     await run({
       inputs: {
