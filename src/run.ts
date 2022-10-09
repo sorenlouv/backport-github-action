@@ -50,9 +50,12 @@ export async function run({
     reviewers,
   });
 
+  // support for Github enterprise
+  const gitHostname = context.serverUrl.replace(/^https{0,1}:\/\//, '');
+
   const result = await backportRun({
     options: {
-      gitHostname: context.serverUrl.replace(/^https{0,1}:\/\//, ''),
+      gitHostname,
       accessToken: inputs.accessToken,
       assignees,
       branchLabelMapping,

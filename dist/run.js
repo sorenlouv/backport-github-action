@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getFailureMessage = exports.run = void 0;
 const backport_1 = require("backport");
 async function run({ context, inputs, }) {
-    const { payload, repo } = context;
+    const { payload, repo, runId } = context;
     const pullRequest = payload.pull_request;
     if (!pullRequest) {
         throw Error('Only pull_request events are supported.');
@@ -15,24 +15,34 @@ async function run({ context, inputs, }) {
     // payload params
     const pullNumber = pullRequest.number;
     const assignees = [pullRequest.user.login];
+    const requestedReviewers = pullRequest.requested_reviewers;
+    const reviewers = inputs.addOriginalReviewers && Array.isArray(requestedReviewers)
+        ? requestedReviewers.map((reviewer) => reviewer.login)
+        : [];
     console.log({
         assignees,
         branchLabelMapping,
         pullNumber,
         repo,
         repoForkOwner,
+        reviewers,
     });
     const result = await (0, backport_1.backportRun)({
         options: {
+            gitHostname: context.serverUrl.replace(/^https{0,1}:\/\//, ''),
             accessToken: inputs.accessToken,
             assignees,
             branchLabelMapping,
+            githubActionRunId: runId,
             interactive: false,
             publishStatusCommentOnFailure: true,
             pullNumber,
             repoForkOwner,
             repoName: repo.repo,
             repoOwner: repo.owner,
+            githubApiBaseUrlV3: context.apiUrl,
+            githubApiBaseUrlV4: context.graphqlUrl,
+            reviewers,
         },
         exitCodeOnFailure: false,
     });

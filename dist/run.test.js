@@ -36,6 +36,7 @@ describe('run', () => {
                 accessToken: 'very-secret',
                 autoBackportLabelPrefix: 'backport-to-',
                 repoForkOwner: '',
+                addOriginalReviewers: true,
             },
             context: {
                 repo: { owner: 'elastic', repo: 'kibana' },
@@ -43,8 +44,12 @@ describe('run', () => {
                     pull_request: {
                         number: 1345,
                         user: { login: 'sqren' },
+                        requested_reviewers: [{ login: 'sqren' }],
                     },
                 },
+                serverUrl: 'https://github.my-own-enterprise.com',
+                apiUrl: 'https://github.my-own-enterprise.com/api/v3',
+                graphqlUrl: 'https://github.my-own-enterprise.com/api/graphql',
             },
         });
         expect(spy).toHaveBeenCalledWith({
@@ -61,6 +66,11 @@ describe('run', () => {
                 repoForkOwner: 'elastic',
                 repoName: 'kibana',
                 repoOwner: 'elastic',
+                gitHostname: 'github.my-own-enterprise.com',
+                githubActionRunId: undefined,
+                githubApiBaseUrlV3: 'https://github.my-own-enterprise.com/api/v3',
+                githubApiBaseUrlV4: 'https://github.my-own-enterprise.com/api/graphql',
+                reviewers: ['sqren'],
             },
         });
     });
