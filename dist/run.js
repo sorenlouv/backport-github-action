@@ -28,6 +28,7 @@ const core = __importStar(require("@actions/core"));
 const backport_1 = require("backport");
 async function run({ context, inputs, }) {
     core.info('Initiate backport');
+    process.env['NODE_ENV'] = 'production-github-action';
     const { payload, repo, runId } = context;
     const pullRequest = payload.pull_request;
     if (!pullRequest) {

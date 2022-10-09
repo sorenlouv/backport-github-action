@@ -15,6 +15,7 @@ export async function run({
   };
 }) {
   core.info('Initiate backport');
+  process.env['NODE_ENV'] = 'production-github-action';
 
   const { payload, repo, runId } = context;
   const pullRequest = payload.pull_request;
