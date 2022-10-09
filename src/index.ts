@@ -2,6 +2,9 @@ import * as core from '@actions/core';
 import { context } from '@actions/github';
 import { getFailureMessage, run } from './run';
 
+// set environment for APM
+process.env['NODE_ENV'] = 'production-github-action';
+
 run({
   context,
   inputs: {
