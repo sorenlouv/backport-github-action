@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import * as core from '@actions/core';
 import { context } from '@actions/github';
 import { getFailureMessage, run } from './run';
@@ -21,6 +20,7 @@ run({
   },
 })
   .then((res) => {
+    core.info(`Backport success: ${res.status}`);
     core.setOutput('Result', res);
     const failureMessage = getFailureMessage(res);
     if (failureMessage) {
@@ -28,6 +28,6 @@ run({
     }
   })
   .catch((error) => {
-    console.error('An error occurred while backporting', error);
+    core.error(`Backport failure: ${error.message}`);
     core.setFailed(error.message);
   });
