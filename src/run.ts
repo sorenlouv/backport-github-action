@@ -11,6 +11,7 @@ export async function run({
     accessToken: string;
     autoBackportLabelPrefix: string;
     repoForkOwner: string;
+    addOriginalReviewers: boolean;
   };
 }) {
   const { payload, repo, runId } = context;
@@ -31,6 +32,14 @@ export async function run({
   // payload params
   const pullNumber = pullRequest.number;
   const assignees = [pullRequest.user.login];
+  const requestedReviewers = pullRequest.requested_reviewers as
+    | Array<{ login: string }>
+    | undefined;
+
+  const reviewers =
+    inputs.addOriginalReviewers && Array.isArray(requestedReviewers)
+      ? requestedReviewers.map((reviewer) => reviewer.login)
+      : [];
 
   console.log({
     assignees,
@@ -38,6 +47,7 @@ export async function run({
     pullNumber,
     repo,
     repoForkOwner,
+    reviewers,
   });
 
   const result = await backportRun({
@@ -55,6 +65,7 @@ export async function run({
       repoOwner: repo.owner,
       githubApiBaseUrlV3: context.apiUrl,
       githubApiBaseUrlV4: context.graphqlUrl,
+      reviewers,
     },
     exitCodeOnFailure: false,
   });

@@ -26,6 +26,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           auto_backport_label_prefix: auto-backport-to-
+          add_original_reviewers: true
 
       - name: Info log
         if: ${{ success() }}
