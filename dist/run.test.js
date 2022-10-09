@@ -23,6 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const core = __importStar(require("@actions/core"));
 const backport = __importStar(require("backport"));
 const run_1 = require("./run");
 describe('run', () => {
@@ -31,6 +32,8 @@ describe('run', () => {
             .spyOn(backport, 'backportRun')
             // @ts-expect-error
             .mockResolvedValue('backport return value');
+        // disable logs
+        jest.spyOn(core, 'info').mockReturnValue();
         await (0, run_1.run)({
             inputs: {
                 accessToken: 'very-secret',
