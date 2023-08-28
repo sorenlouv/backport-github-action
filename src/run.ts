@@ -4,7 +4,7 @@ import {
   BackportResponse,
   backportRun,
   UnhandledErrorResult,
-  getProjectConfig,
+  getOptionsFromGithub,
 } from 'backport';
 
 export async function run({
@@ -48,11 +48,18 @@ export async function run({
       ? requestedReviewers.map((reviewer) => reviewer.login)
       : [];
 
-  const projectConfig = await getProjectConfig();
+  const gitHostname = context.serverUrl.replace(/^https{0,1}:\/\//, ''); // support for Github enterprise
+
+  const optionsFromGithub = await getOptionsFromGithub({
+    accessToken: inputs.accessToken,
+    repoName: repo.repo,
+    repoOwner: repo.owner,
+    githubApiBaseUrlV4: context.graphqlUrl,
+  });
 
   core.info(
     JSON.stringify({
-      projectConfig,
+      optionsFromGithub,
       actionConfig: {
         assignees,
         branchLabelMapping,
@@ -65,8 +72,8 @@ export async function run({
   );
 
   if (
-    !projectConfig?.branchLabelMapping &&
-    !projectConfig?.targetBranches &&
+    !optionsFromGithub.branchLabelMapping &&
+    !optionsFromGithub.targetBranches &&
     !branchLabelMapping
   ) {
     throw new Error(
@@ -74,8 +81,6 @@ export async function run({
     );
   }
 
-  // support for Github enterprise
-  const gitHostname = context.serverUrl.replace(/^https{0,1}:\/\//, '');
   const result = await backportRun({
     options: {
       gitHostname,
