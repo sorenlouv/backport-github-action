@@ -1,6 +1,11 @@
 import * as core from '@actions/core';
 import { Context } from '@actions/github/lib/context';
-import { BackportResponse, backportRun, UnhandledErrorResult } from 'backport';
+import {
+  BackportResponse,
+  backportRun,
+  UnhandledErrorResult,
+  getProjectConfig,
+} from 'backport';
 
 export async function run({
   context,
@@ -43,16 +48,31 @@ export async function run({
       ? requestedReviewers.map((reviewer) => reviewer.login)
       : [];
 
+  const projectConfig = await getProjectConfig();
+
   core.info(
     JSON.stringify({
-      assignees,
-      branchLabelMapping,
-      pullNumber,
-      repo,
-      repoForkOwner,
-      reviewers,
-    })
+      projectConfig,
+      actionConfig: {
+        assignees,
+        branchLabelMapping,
+        pullNumber,
+        repo,
+        repoForkOwner,
+        reviewers,
+      },
+    }),
   );
+
+  if (
+    !projectConfig?.branchLabelMapping &&
+    !projectConfig?.targetBranches &&
+    !branchLabelMapping
+  ) {
+    throw new Error(
+      'No target branches configured. Please configure `targetBranches: ["my-target-branch"]` in .backportrc.json or use the auto_backport_label_prefix input.',
+    );
+  }
 
   // support for Github enterprise
   const gitHostname = context.serverUrl.replace(/^https{0,1}:\/\//, '');
@@ -88,7 +108,7 @@ export function getFailureMessage(res: BackportResponse) {
 
     case 'success': {
       const unhandledErrorResults = res.results.filter(
-        (res): res is UnhandledErrorResult => res.status === 'unhandled-error'
+        (res): res is UnhandledErrorResult => res.status === 'unhandled-error',
       );
 
       // only return message if there are unhandled errors
