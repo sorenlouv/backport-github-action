@@ -15,7 +15,7 @@
     "@actions/github": "^5.1.1",
     "@octokit/action": "^4.0.8",
     "@octokit/graphql": "^5.0.1",
-    "backport": "9.2.1-beta.4",
+    "backport": "9.2.1",
     "husky": "^8.0.3"
   },
   "devDependencies": {
