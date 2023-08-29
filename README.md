@@ -43,6 +43,9 @@ For more fine grained customization, and for the ability to run the [Backport To
   "repoOwner": "torvalds",
   "repoName": "linux",
 
+  // `targetBranch` option allows to automatically backport every PR to a specific branch without the need for labels
+  "targetBranches": ["production"],
+
   // the branches available to backport to
   "targetBranchChoices": ["main", "production", "staging"],
 
