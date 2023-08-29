@@ -18,7 +18,7 @@ jobs:
         uses: sqren/backport-github-action@v9.2.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          auto_backport_label_prefix: auto-backport-to-
+          auto_backport_label_prefix: backport-to-
 
       - name: Info log
         if: ${{ success() }}
@@ -30,7 +30,7 @@ jobs:
           
 ```
 
-Now, to backport a pull request, simply apply the labels `auto-backport` and `auto-backport-to-production`. This will automatically backport the PR to the branch called "production" when the PR is merged. 
+Now, to backport a pull request, simply apply the label `backport-to-production`. This will automatically backport the PR to the branch called "production" when the PR is merged. 
 
 ## Configuration
 
@@ -46,9 +46,9 @@ For more fine grained customization, and for the ability to run the [Backport To
   // the branches available to backport to
   "targetBranchChoices": ["main", "production", "staging"],
 
-  // In this case, adding the label "auto-backport-to-production" will backport the PR to the "production" branch
+  // In this case, adding the label "backport-to-production" will backport the PR to the "production" branch
   "branchLabelMapping": {
-    "^auto-backport-to-(.+)$": "$1"
+    "^backport-to-(.+)$": "$1"
   }
 }
 ```
