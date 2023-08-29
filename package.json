@@ -14,7 +14,7 @@
     "@actions/exec": "^1.1.1",
     "@actions/github": "^5.1.1",
     "@octokit/action": "^4.0.8",
-    "@octokit/graphql": "^5.0.1",
+    "@octokit/graphql": "^7.0.1",
     "backport": "9.2.1",
     "husky": "^8.0.3",
     "lodash": "^4.17.21"
