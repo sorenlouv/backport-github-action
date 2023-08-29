@@ -5,101 +5,63 @@ import {
   backportRun,
   UnhandledErrorResult,
   getOptionsFromGithub,
+  getCommits,
 } from 'backport';
+import { isEmpty } from 'lodash';
+
+type Inputs = {
+  accessToken: string;
+  autoBackportLabelPrefix: string;
+  repoForkOwner: string;
+  addOriginalReviewers: boolean;
+};
 
 export async function run({
   context,
   inputs,
 }: {
   context: Context;
-  inputs: {
-    accessToken: string;
-    autoBackportLabelPrefix: string;
-    repoForkOwner: string;
-    addOriginalReviewers: boolean;
-  };
+  inputs: Inputs;
 }) {
   core.info('Initiate backport');
 
-  const { payload, repo, runId } = context;
-  const pullRequest = payload.pull_request;
-
-  if (!pullRequest) {
-    throw Error('Only pull_request events are supported.');
-  }
-
-  const branchLabelMapping =
-    inputs.autoBackportLabelPrefix !== ''
-      ? { [`^${inputs.autoBackportLabelPrefix}(.+)$`]: '$1' }
-      : undefined;
-
-  const repoForkOwner =
-    inputs.repoForkOwner !== '' ? inputs.repoForkOwner : repo.owner;
-
-  // payload params
-  const pullNumber = pullRequest.number;
-  const assignees = [pullRequest.user.login];
-  const requestedReviewers = pullRequest.requested_reviewers as
-    | Array<{ login: string }>
-    | undefined;
-
-  const reviewers =
-    inputs.addOriginalReviewers && Array.isArray(requestedReviewers)
-      ? requestedReviewers.map((reviewer) => reviewer.login)
-      : [];
-
-  const gitHostname = context.serverUrl.replace(/^https{0,1}:\/\//, ''); // support for Github enterprise
-
+  const options = getActionOptions(inputs, context);
   const optionsFromGithub = await getOptionsFromGithub({
-    accessToken: inputs.accessToken,
-    repoName: repo.repo,
-    repoOwner: repo.owner,
-    githubApiBaseUrlV4: context.graphqlUrl,
+    accessToken: options.accessToken,
+    repoName: options.repoName,
+    repoOwner: options.repoOwner,
+    githubApiBaseUrlV4: options.githubApiBaseUrlV4,
   });
 
-  core.info(
-    JSON.stringify({
-      optionsFromGithub,
-      actionConfig: {
-        assignees,
-        branchLabelMapping,
-        pullNumber,
-        repo,
-        repoForkOwner,
-        reviewers,
-      },
-    }),
-  );
+  core.info(JSON.stringify({ optionsFromGithub, actionOptions: options }));
 
   if (
-    !optionsFromGithub.branchLabelMapping &&
     !optionsFromGithub.targetBranches &&
-    !branchLabelMapping
+    !optionsFromGithub.branchLabelMapping &&
+    !options.branchLabelMapping
   ) {
     throw new Error(
-      'No target branches configured. Please configure `targetBranches: ["my-target-branch"]` in .backportrc.json or use the auto_backport_label_prefix input.',
+      'No target branches configured. Please configure `targetBranches: ["my-target-branch"]` in .backportrc.json or use the `auto_backport_label_prefix` input option.',
     );
   }
 
-  const result = await backportRun({
-    options: {
-      gitHostname,
-      accessToken: inputs.accessToken,
-      assignees,
-      branchLabelMapping,
-      githubActionRunId: runId,
-      interactive: false,
-      publishStatusCommentOnFailure: true,
-      pullNumber,
-      repoForkOwner,
-      repoName: repo.repo,
-      repoOwner: repo.owner,
-      githubApiBaseUrlV3: context.apiUrl,
-      githubApiBaseUrlV4: context.graphqlUrl,
-      reviewers,
-    },
-    exitCodeOnFailure: false,
+  // check if there are any target branches for this PR
+  const commits = await getCommits({
+    accessToken: options.accessToken,
+    repoName: options.repoName,
+    repoOwner: options.repoOwner,
+    pullNumber: options.pullNumber,
+    branchLabelMapping: options.branchLabelMapping,
   });
+
+  core.info(JSON.stringify({ commits }));
+
+  const suggestedTargetBranches = commits[0]?.suggestedTargetBranches;
+  if (isEmpty(suggestedTargetBranches)) {
+    throw new Error('No target branches found for this PR. Aborting.');
+  }
+
+  const result = await backportRun({ options, exitCodeOnFailure: false });
 
   core.info(`Result ${JSON.stringify(result, null, 2)}`);
   return result;
@@ -125,4 +87,43 @@ export function getFailureMessage(res: BackportResponse) {
       }
     }
   }
+}
+
+function getActionOptions(inputs: Inputs, context: Context) {
+  const { payload, repo, runId } = context;
+  const pullRequest = payload.pull_request;
+
+  if (!pullRequest) {
+    throw Error('Only pull_request events are supported.');
+  }
+
+  const requestedReviewers = pullRequest.requested_reviewers as
+    | Array<{ login: string }>
+    | undefined;
+
+  const options = {
+    accessToken: inputs.accessToken,
+    assignees: [pullRequest.user.login as string],
+    branchLabelMapping:
+      inputs.autoBackportLabelPrefix !== ''
+        ? { [`^${inputs.autoBackportLabelPrefix}(.+)$`]: '$1' }
+        : undefined,
+    gitHostname: context.serverUrl.replace(/^https{0,1}:\/\//, ''), // support for Github enterprise,
+    githubActionRunId: runId,
+    githubApiBaseUrlV3: context.apiUrl,
+    githubApiBaseUrlV4: context.graphqlUrl,
+    interactive: false,
+    publishStatusCommentOnFailure: true,
+    pullNumber: pullRequest.number,
+    repoForkOwner:
+      inputs.repoForkOwner !== '' ? inputs.repoForkOwner : repo.owner,
+    repoName: repo.repo,
+    repoOwner: repo.owner,
+    reviewers:
+      inputs.addOriginalReviewers && Array.isArray(requestedReviewers)
+        ? requestedReviewers.map((reviewer) => reviewer.login)
+        : [],
+  };
+
+  return options;
 }

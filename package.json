@@ -16,11 +16,13 @@
     "@octokit/action": "^4.0.8",
     "@octokit/graphql": "^5.0.1",
     "backport": "9.2.1",
-    "husky": "^8.0.3"
+    "husky": "^8.0.3",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/core-js": "^2.5.5",
     "@types/jest": "^29.5.4",
+    "@types/lodash": "^4.14.197",
     "@types/node": "^20.5.7",
     "@typescript-eslint/eslint-plugin": "^6.5.0",
     "@typescript-eslint/parser": "^6.5.0",
