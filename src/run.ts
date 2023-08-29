@@ -1,6 +1,11 @@
 import * as core from '@actions/core';
 import { Context } from '@actions/github/lib/context';
-import { BackportResponse, backportRun, UnhandledErrorResult } from 'backport';
+import {
+  BackportResponse,
+  backportRun,
+  UnhandledErrorResult,
+  getOptionsFromGithub,
+} from 'backport';
 
 export async function run({
   context,
@@ -43,19 +48,39 @@ export async function run({
       ? requestedReviewers.map((reviewer) => reviewer.login)
       : [];
 
+  const gitHostname = context.serverUrl.replace(/^https{0,1}:\/\//, ''); // support for Github enterprise
+
+  const optionsFromGithub = await getOptionsFromGithub({
+    accessToken: inputs.accessToken,
+    repoName: repo.repo,
+    repoOwner: repo.owner,
+    githubApiBaseUrlV4: context.graphqlUrl,
+  });
+
   core.info(
     JSON.stringify({
-      assignees,
-      branchLabelMapping,
-      pullNumber,
-      repo,
-      repoForkOwner,
-      reviewers,
-    })
+      optionsFromGithub,
+      actionConfig: {
+        assignees,
+        branchLabelMapping,
+        pullNumber,
+        repo,
+        repoForkOwner,
+        reviewers,
+      },
+    }),
   );
 
-  // support for Github enterprise
-  const gitHostname = context.serverUrl.replace(/^https{0,1}:\/\//, '');
+  if (
+    !optionsFromGithub.branchLabelMapping &&
+    !optionsFromGithub.targetBranches &&
+    !branchLabelMapping
+  ) {
+    throw new Error(
+      'No target branches configured. Please configure `targetBranches: ["my-target-branch"]` in .backportrc.json or use the auto_backport_label_prefix input.',
+    );
+  }
+
   const result = await backportRun({
     options: {
       gitHostname,
@@ -88,7 +113,7 @@ export function getFailureMessage(res: BackportResponse) {
 
     case 'success': {
       const unhandledErrorResults = res.results.filter(
-        (res): res is UnhandledErrorResult => res.status === 'unhandled-error'
+        (res): res is UnhandledErrorResult => res.status === 'unhandled-error',
       );
 
       // only return message if there are unhandled errors

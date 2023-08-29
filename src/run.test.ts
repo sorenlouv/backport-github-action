@@ -10,6 +10,9 @@ describe('run', () => {
       // @ts-expect-error
       .mockResolvedValue('backport return value');
 
+    // @ts-expect-error
+    jest.spyOn(backport, 'getOptionsFromGithub').mockResolvedValue({});
+
     // disable logs
     jest.spyOn(core, 'info').mockReturnValue();
 
@@ -103,7 +106,7 @@ describe('getFailureMessage', () => {
         ],
       };
       expect(getFailureMessage(res)).toBe(
-        'Unhandled errors: My unhandled error, Another unhandled error'
+        'Unhandled errors: My unhandled error, Another unhandled error',
       );
     });
   });
@@ -132,7 +135,7 @@ describe('getFailureMessage', () => {
         errorMessage: e.message,
       };
       expect(getFailureMessage(res)).toBe(
-        'Conflict resolution was aborted by the user'
+        'Conflict resolution was aborted by the user',
       );
     });
   });
