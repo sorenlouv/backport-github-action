@@ -1700,10 +1700,10 @@ babel-preset-jest@^29.6.3:
     babel-plugin-jest-hoist "^29.6.3"
     babel-preset-current-node-syntax "^1.0.0"
 
-backport@9.2.1:
-  version "9.2.1"
-  resolved "https://registry.yarnpkg.com/backport/-/backport-9.2.1.tgz#acb4d45f0c47b452c8e23f680687d3434790cadc"
-  integrity sha512-QKJBoECahntwtmh8uA8HzCkcvCc6ysvMxBt+V5kqt3rC5imYda+JXVrTtp/YnFqgCWKaEwWItautR7cq+GNA9w==
+backport@9.2.2:
+  version "9.2.2"
+  resolved "https://registry.yarnpkg.com/backport/-/backport-9.2.2.tgz#8b374fba1b16c1044711fe7d11f3b9f662ce0571"
+  integrity sha512-WZjmJca9Pmm0fb7i6fwPV0GmG3B5Z99ndNtVj7jwRQFG7SQYVcY0H8pv58/C0mlOhbIGyI5R+4MXzvZeTi/iwg==
   dependencies:
     "@octokit/rest" "^19.0.7"
     axios "^1.4.0"
@@ -4672,10 +4672,10 @@ prettier-linter-helpers@^1.0.0:
   dependencies:
     fast-diff "^1.1.2"
 
-prettier@^3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.0.2.tgz#78fcecd6d870551aa5547437cdae39d4701dca5b"
-  integrity sha512-o2YR9qtniXvwEZlOKbveKfDQVyqxbEIWn48Z8m3ZJjBjcCmUy3xZGIv+7AkaeuaTr6yPXJjwv07ZWlsWbEy1rQ==
+prettier@^3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.0.3.tgz#432a51f7ba422d1469096c0fdc28e235db8f9643"
+  integrity sha512-L/4pUDMxcNa8R/EthV08Zt42WBO4h1rarVtK0K+QJG0X187OLo7l699jWw0GKuwzkPQ//jMFA/8Xm6Fh3J/DAg==
 
 pretty-format@^29.0.0, pretty-format@^29.1.2:
   version "29.1.2"
