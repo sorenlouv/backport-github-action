@@ -1,6 +1,6 @@
 {
   "name": "backport-github-action",
-  "version": "9.2.2",
+  "version": "9.3.0",
   "private": true,
   "scripts": {
     "build": "yarn ncc build src/index.ts",
@@ -15,7 +15,7 @@
     "@actions/github": "^5.1.1",
     "@octokit/action": "^4.0.8",
     "@octokit/graphql": "^5.0.1",
-    "backport": "9.2.2",
+    "backport": "9.3.0",
     "husky": "^8.0.3",
     "lodash": "^4.17.21"
   },
