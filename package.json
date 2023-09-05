@@ -1,6 +1,6 @@
 {
   "name": "backport-github-action",
-  "version": "9.3.0",
+  "version": "9.3.0-a",
   "private": true,
   "scripts": {
     "build": "yarn ncc build src/index.ts",
