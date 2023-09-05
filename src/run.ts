@@ -5,9 +5,7 @@ import {
   backportRun,
   UnhandledErrorResult,
   getOptionsFromGithub,
-  getCommits,
 } from 'backport';
-import { isEmpty } from 'lodash';
 
 type Inputs = {
   accessToken: string;
@@ -43,22 +41,6 @@ export async function run({
     throw new Error(
       'No target branches configured. Please configure `targetBranches: ["my-target-branch"]` in .backportrc.json or use the `auto_backport_label_prefix` input option.',
     );
-  }
-
-  // check if there are any target branches for this PR
-  const commits = await getCommits({
-    accessToken: options.accessToken,
-    repoName: options.repoName,
-    repoOwner: options.repoOwner,
-    pullNumber: options.pullNumber,
-    branchLabelMapping: options.branchLabelMapping,
-  });
-
-  core.info(JSON.stringify({ commits }));
-
-  const suggestedTargetBranches = commits[0]?.suggestedTargetBranches;
-  if (isEmpty(suggestedTargetBranches)) {
-    throw new Error('No target branches found for this PR. Aborting.');
   }
 
   const result = await backportRun({ options, exitCodeOnFailure: false });

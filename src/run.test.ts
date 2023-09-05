@@ -106,53 +106,6 @@ describe('run', () => {
 
     expect(spy).not.toHaveBeenCalled();
   });
-
-  it('aborts if no suggestedBranches are found', async () => {
-    const spy = jest.spyOn(backport, 'backportRun');
-
-    // @ts-expect-error
-    jest.spyOn(backport, 'getOptionsFromGithub').mockResolvedValue({
-      branchLabelMapping: {
-        '^auto-backport-to-(.+)$': '$1',
-      },
-    });
-
-    jest
-      .spyOn(backport, 'getCommits')
-      //@ts-expect-error
-      .mockResolvedValue([{ suggestedTargetBranches: [] }]);
-
-    // disable logs
-    jest.spyOn(core, 'info').mockReturnValue();
-
-    const p = run({
-      inputs: {
-        accessToken: 'very-secret',
-        autoBackportLabelPrefix: '',
-        repoForkOwner: '',
-        addOriginalReviewers: true,
-      },
-      context: {
-        repo: { owner: 'elastic', repo: 'kibana' },
-        payload: {
-          pull_request: {
-            number: 1345,
-            user: { login: 'sqren' },
-            requested_reviewers: [{ login: 'sqren' }],
-          },
-        },
-        serverUrl: 'https://github.my-own-enterprise.com',
-        apiUrl: 'https://github.my-own-enterprise.com/api/v3',
-        graphqlUrl: 'https://github.my-own-enterprise.com/api/graphql',
-      } as unknown as Context,
-    });
-
-    await expect(p).rejects.toThrow(
-      'No target branches found for this PR. Aborting.',
-    );
-
-    expect(spy).not.toHaveBeenCalled();
-  });
 });
 
 describe('getFailureMessage', () => {
