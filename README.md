@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Backport Action
-        uses: sqren/backport-github-action@v9.3.0
+        uses: sorenlouv/backport-github-action@v9.3.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           auto_backport_label_prefix: backport-to-
@@ -36,7 +36,7 @@ Now, to backport a pull request, simply apply the label `backport-to-production`
 
 ## Configuration
 
-For more fine grained customization, and for the ability to run the [Backport Tool](https://github.com/sqren/backport) as a CLI tool locally, you should create a `.backportrc.json` file in the root directory:
+For more fine grained customization, and for the ability to run the [Backport Tool](https://github.com/sorenlouv/backport) as a CLI tool locally, you should create a `.backportrc.json` file in the root directory:
 
 ```js
 // .backportrc.json
@@ -59,5 +59,5 @@ For more fine grained customization, and for the ability to run the [Backport To
 ```
 
 
- See the [Backport Tool documentation](https://github.com/sqren/backport/blob/main/docs/config-file-options.md) for all configuration options.
+ See the [Backport Tool documentation](https://github.com/sorenlouv/backport/blob/main/docs/config-file-options.md) for all configuration options.
 

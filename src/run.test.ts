@@ -36,8 +36,8 @@ describe('run', () => {
         payload: {
           pull_request: {
             number: 1345,
-            user: { login: 'sqren' },
-            requested_reviewers: [{ login: 'sqren' }],
+            user: { login: 'sorenlouv' },
+            requested_reviewers: [{ login: 'sorenlouv' }],
           },
         },
         serverUrl: 'https://github.my-own-enterprise.com',
@@ -50,7 +50,7 @@ describe('run', () => {
       exitCodeOnFailure: false,
       options: {
         accessToken: 'very-secret',
-        assignees: ['sqren'],
+        assignees: ['sorenlouv'],
         branchLabelMapping: {
           '^backport-to-(.+)$': '$1',
         },
@@ -64,7 +64,7 @@ describe('run', () => {
         githubActionRunId: undefined,
         githubApiBaseUrlV3: 'https://github.my-own-enterprise.com/api/v3',
         githubApiBaseUrlV4: 'https://github.my-own-enterprise.com/api/graphql',
-        reviewers: ['sqren'],
+        reviewers: ['sorenlouv'],
       },
     });
   });
@@ -90,8 +90,8 @@ describe('run', () => {
         payload: {
           pull_request: {
             number: 1345,
-            user: { login: 'sqren' },
-            requested_reviewers: [{ login: 'sqren' }],
+            user: { login: 'sorenlouv' },
+            requested_reviewers: [{ login: 'sorenlouv' }],
           },
         },
         serverUrl: 'https://github.my-own-enterprise.com',
