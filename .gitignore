@@ -2,3 +2,4 @@
 /yarn-error.log
 /.missing-tsc-build
 /.eslintcache
+/ts-dist

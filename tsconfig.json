@@ -5,7 +5,7 @@
     "target": "ES2021",
     "lib": ["ES2021"],
     "module": "CommonJS",
-    "outDir": "./dist",
+    "outDir": "./ts-dist",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noUnusedLocals": true,
