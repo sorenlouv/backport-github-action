@@ -14,6 +14,7 @@ on:
 jobs:
   backport:
     name: Backport PR
+    if: github.event.pull_request.merged == true && !(contains(github.event.pull_request.labels.*.name, 'backport'))
     runs-on: ubuntu-latest
     steps:
       - name: Backport Action
