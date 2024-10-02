@@ -24,7 +24,6 @@ jobs:
           allow_failure: true
           prefix_mode: true
           one_of: backport-to-
-          none_of: was-backported
           repo_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Backport Action
