@@ -14,24 +14,35 @@ on:
 jobs:
   backport:
     name: Backport PR
-    if: github.event.pull_request.merged == true && !(contains(github.event.pull_request.labels.*.name, 'backport'))
+    if: github.event.pull_request.merged == true && !(contains(github.event.pull_request.labels.*.name, 'backport')) && !(contains(github.event.pull_request.labels.*.name, 'was-backported'))
     runs-on: ubuntu-latest
     steps:
+      - name: Check labels
+        id: preview_label_check
+        uses: docker://agilepathway/pull-request-label-checker:latest
+        with:
+          allow_failure: true
+          prefix_mode: true
+          one_of: backport-to-
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Backport Action
         uses: sorenlouv/backport-github-action@v9.5.1
+        if: steps.preview_label_check.outputs.label_check == 'success'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           auto_backport_label_prefix: backport-to-
 
       - name: Info log
-        if: ${{ success() }}
+        if: ${{ success() && steps.preview_label_check.outputs.label_check == 'success' }} 
         run: cat ~/.backport/backport.info.log
         
       - name: Debug log
-        if: ${{ failure() }}
+        if: ${{ failure() && steps.preview_label_check.outputs.label_check == 'success' }}
         run: cat ~/.backport/backport.debug.log        
           
 ```
+> Note: The action won't run if the PR contains the labels `backport` or `was-backported`. Also it uses the `pull-request-label-checker` action just to run if the PR contains the `backport-to-` label prefix.
 
 Now, to backport a pull request, simply apply the label `backport-to-production`. This will automatically backport the PR to the branch called "production" when the PR is merged. 
 
