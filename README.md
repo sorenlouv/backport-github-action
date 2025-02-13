@@ -17,6 +17,12 @@ jobs:
     if: github.event.pull_request.merged == true && !(contains(github.event.pull_request.labels.*.name, 'backport'))
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_dispatch.ref }}
+          sparse-checkout: .backportrc.json
+          sparse-checkout-cone-mode: false
       - name: Backport Action
         uses: sorenlouv/backport-github-action@v9.5.1
         with:
