@@ -15,7 +15,7 @@ inputs:
     required: false
     default: false
 runs:
-  using: 'node20'
+  using: 'node22'
   main: 'dist/index.js'
 branding:
   icon: git-branch
