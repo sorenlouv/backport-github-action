@@ -1,0 +1,9 @@
+---
+description: Git push restrictions for backport repos
+alwaysApply: true
+---
+
+# Git push restrictions
+
+- **Never** run `git push`, `gh release create`, or any remote-mutating operation against `sorenlouv/backport` or `sorenlouv/backport-github-action` without explicit user approval.
+- Pushing directly to `backport-org/backport-demo` is allowed — it is an internal test repo, not user-facing.
