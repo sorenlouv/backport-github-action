@@ -170,6 +170,50 @@ If the workflow fails with "no branches to backport to":
    gh run rerun <RUN_ID> --repo backport-org/backport-demo
    ```
 
+## Step 6: Test new features from the backport changelog
+
+Before finalizing a release, check the [backport releases page](https://github.com/sorenlouv/backport/releases) for new features or behavior changes included in the version being released. Design targeted tests for any significant additions.
+
+### How to identify what to test
+
+```bash
+# View the changelog between the previous and new version
+gh release view v<NEW_VERSION> --repo sorenlouv/backport
+```
+
+Look for new config options, changed behavior, or bug fixes that affect the GitHub Action workflow.
+
+### Example: Testing `autoResolveConflictsWithTheirs` (introduced in v10.4.0)
+
+This feature auto-resolves cherry-pick conflicts using `--strategy-option=theirs` instead of aborting. To test it:
+
+1. **Enable the feature** in `.backportrc.json` on the demo repo:
+   ```bash
+   # Add "autoResolveConflictsWithTheirs": true to .backportrc.json on master
+   ```
+
+2. **Create a conflict scenario** -- add the same file with different content on `production` and `master`:
+   ```bash
+   # On production: create files/conflict-test.md with "Production content"
+   PROD_CONTENT=$(echo "This content only exists on production." | base64)
+   gh api repos/backport-org/backport-demo/contents/files/conflict-test.md \
+     -X PUT -f message="Add conflict-test.md on production" \
+     -f content="$PROD_CONTENT" -f branch="production"
+
+   # On master: create same file with different content
+   MASTER_CONTENT=$(echo "Original master content." | base64)
+   gh api repos/backport-org/backport-demo/contents/files/conflict-test.md \
+     -X PUT -f message="Add conflict-test.md on master" \
+     -f content="$MASTER_CONTENT" -f branch="master"
+   ```
+
+3. **Create a PR** that modifies the file on a branch from master, labeled `auto-backport-to-production`
+
+4. **Merge and verify**:
+   - The backport PR should be created successfully (not aborted)
+   - The PR body should include: _"This PR was created with conflicts auto-resolved in favor of the source commit"_
+   - Auto-merge should be disabled on the backport PR (since conflicts were resolved automatically)
+
 ## Demo repo details
 
 - **Repo:** [backport-org/backport-demo](https://github.com/backport-org/backport-demo)
