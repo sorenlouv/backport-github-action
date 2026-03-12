@@ -20,8 +20,14 @@ export async function run({
 }: {
   context: Context;
   inputs: Inputs;
-}) {
+}): Promise<BackportResponse> {
   core.info('Initiate backport');
+
+  const pullRequest = context.payload.pull_request;
+  if (pullRequest && !pullRequest.merged) {
+    core.info('PR is not merged. Skipping backport.');
+    return { status: 'success', commits: [], results: [] };
+  }
 
   const options = getActionOptions(inputs, context);
   const optionsFromGithub = await getOptionsFromGithub({

@@ -87,6 +87,7 @@ on:
 jobs:
   backport:
     name: Backport PR
+    if: github.event.pull_request.merged == true && !(contains(github.event.pull_request.labels.*.name, 'backport'))
     runs-on: ubuntu-latest
     steps:
       - name: Backport Action
@@ -103,6 +104,8 @@ jobs:
         if: ${{ failure() }}
         run: cat /home/runner/.backport/backport.debug.log
 ```
+
+The `if` condition ensures the job only runs when the PR is actually merged, preventing spurious failures from the `labeled` event. The action also has a built-in guard that skips gracefully if the PR is not merged.
 
 ### 5b. Create a test PR
 
@@ -160,11 +163,12 @@ gh pr list --repo backport-org/backport-demo --state open \
 
 If the workflow fails with "no branches to backport to":
 1. Verify the PR has the `auto-backport-to-production` label
-2. This can happen due to a race condition on the `labeled` event (triggered before merge). The `closed` event run should succeed. If not, re-run it:
+2. Ensure the workflow has the `if: github.event.pull_request.merged == true` guard on the job. Without it, the `labeled` event can trigger the action before the PR is merged. The action itself also skips unmerged PRs gracefully, but the workflow guard avoids unnecessary runs entirely.
+3. Check the debug log in the workflow run output for details
+4. If a run needs to be retried:
    ```bash
    gh run rerun <RUN_ID> --repo backport-org/backport-demo
    ```
-3. Check the debug log in the workflow run output for details
 
 ## Demo repo details
 

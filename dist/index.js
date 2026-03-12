@@ -153453,6 +153453,11 @@ const core = __importStar(__nccwpck_require__(42186));
 const backport_1 = __nccwpck_require__(10432);
 async function run({ context, inputs, }) {
     core.info('Initiate backport');
+    const pullRequest = context.payload.pull_request;
+    if (pullRequest && !pullRequest.merged) {
+        core.info('PR is not merged. Skipping backport.');
+        return { status: 'success', commits: [], results: [] };
+    }
     const options = getActionOptions(inputs, context);
     const optionsFromGithub = await (0, backport_1.getOptionsFromGithub)({
         accessToken: options.accessToken,

@@ -35,6 +35,7 @@ describe('run', () => {
         repo: { owner: 'elastic', repo: 'kibana' },
         payload: {
           pull_request: {
+            merged: true,
             number: 1345,
             user: { login: 'sorenlouv' },
             requested_reviewers: [{ login: 'sorenlouv' }],
@@ -69,6 +70,40 @@ describe('run', () => {
     });
   });
 
+  it('skips backport gracefully when PR is not merged', async () => {
+    const spy = jest.spyOn(backport, 'backportRun');
+
+    const infoSpy = jest.spyOn(core, 'info').mockReturnValue();
+
+    const result = await run({
+      inputs: {
+        accessToken: 'very-secret',
+        autoBackportLabelPrefix: 'backport-to-',
+        repoForkOwner: '',
+        addOriginalReviewers: false,
+      },
+      context: {
+        repo: { owner: 'elastic', repo: 'kibana' },
+        payload: {
+          pull_request: {
+            merged: false,
+            number: 1345,
+            user: { login: 'sorenlouv' },
+          },
+        },
+        serverUrl: 'https://github.com',
+        apiUrl: 'https://api.github.com',
+        graphqlUrl: 'https://api.github.com/graphql',
+      } as unknown as Context,
+    });
+
+    expect(spy).not.toHaveBeenCalled();
+    expect(infoSpy).toHaveBeenCalledWith(
+      'PR is not merged. Skipping backport.',
+    );
+    expect(result).toEqual({ status: 'success', commits: [], results: [] });
+  });
+
   it('aborts if no targetBranches, branchLabelMappings or autoBackportLabelPrefix are provided', async () => {
     const spy = jest.spyOn(backport, 'backportRun');
 
@@ -89,6 +124,7 @@ describe('run', () => {
         repo: { owner: 'elastic', repo: 'kibana' },
         payload: {
           pull_request: {
+            merged: true,
             number: 1345,
             user: { login: 'sorenlouv' },
             requested_reviewers: [{ login: 'sorenlouv' }],
