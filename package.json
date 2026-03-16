@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "yarn ncc build src/index.ts -o dist",
+    "build": "npx ncc build src/index.ts -o dist",
     "prepare": "husky",
     "lint": "eslint './**/*.{ts,js}'",
     "test": "vitest run"
