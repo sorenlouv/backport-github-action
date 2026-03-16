@@ -5,6 +5,12 @@ import { getFailureMessage, run } from './run.js';
 // set environment for APM
 process.env['NODE_ENV'] = 'production-github-action';
 
+const ignoredErrorCodes = core
+  .getInput('ignore_error_codes', { required: false })
+  .split(',')
+  .map((code) => code.trim())
+  .filter(Boolean);
+
 run({
   context,
   inputs: {
@@ -23,11 +29,12 @@ run({
   },
 })
   .then((res) => {
-    core.info(`Backport success: ${res.status}`);
     core.setOutput('Result', res);
-    const failureMessage = getFailureMessage(res);
+    const failureMessage = getFailureMessage(res, ignoredErrorCodes);
     if (failureMessage) {
       core.setFailed(failureMessage);
+    } else {
+      core.info('Backport completed');
     }
   })
   .catch((error) => {

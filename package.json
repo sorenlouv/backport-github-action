@@ -1,38 +1,42 @@
 {
   "name": "backport-github-action",
-  "version": "10.4.0",
+  "version": "11.0.0-beta.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "yarn ncc build src/index.ts -o dist",
+    "build": "npx ncc build src/index.ts -o dist",
     "prepare": "husky",
     "lint": "eslint './**/*.{ts,js}'",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "npx tsx scripts/smoke-test/smoke-test.ts"
   },
   "engines": {
     "node": ">=22.0.0"
   },
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.10.0",
-    "@actions/exec": "^1.1.1",
-    "@actions/github": "^5.1.1",
-    "@octokit/action": "^4.0.8",
-    "@octokit/graphql": "^5.0.1",
-    "backport": "10.4.0",
-    "lodash": "^4.17.21"
+    "@actions/core": "^3.0.0",
+    "@actions/exec": "^3.0.0",
+    "@actions/github": "^9.0.0",
+    "@octokit/action": "^8.0.4",
+    "@octokit/graphql": "^9.0.3",
+    "backport": "11.0.0-beta.1",
+    "lodash": "^4.17.23"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/lodash": "^4.17.12",
+    "@octokit/rest": "^22.0.1",
+    "@types/lodash": "^4.17.24",
     "@types/node": "^25.5.0",
-    "@typescript-eslint/eslint-plugin": "^8.57.0",
-    "@typescript-eslint/parser": "^8.57.0",
-    "@vercel/ncc": "^0.36.1",
+    "@typescript-eslint/eslint-plugin": "^8.57.1",
+    "@typescript-eslint/parser": "^8.57.1",
+    "@vercel/ncc": "^0.38.4",
+    "chalk": "^5.6.2",
     "eslint": "^10.0.3",
     "eslint-plugin-import-x": "^4.16.2",
     "husky": "^9.1.7",
-    "lint-staged": "^16.3.3",
+    "lint-staged": "^16.4.0",
+    "p-retry": "^7.1.1",
     "prettier": "^3.8.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",

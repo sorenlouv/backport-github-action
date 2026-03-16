@@ -1,5 +1,5 @@
 import type { context } from '@actions/github';
-import { BackportResponse } from 'backport';
+import { type BackportResponse } from 'backport';
 type Context = typeof context;
 type Inputs = {
     accessToken: string;
@@ -11,5 +11,5 @@ export declare function run({ context, inputs, }: {
     context: Context;
     inputs: Inputs;
 }): Promise<BackportResponse>;
-export declare function getFailureMessage(res: BackportResponse): string | undefined;
+export declare function getFailureMessage(res: BackportResponse, ignoredErrorCodes?: string[]): string | undefined;
 export {};

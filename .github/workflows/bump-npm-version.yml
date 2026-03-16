@@ -21,8 +21,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'yarn'
+          cache: 'npm'
       - run: git config --global user.email "backportci@users.noreply.github.com "
       - run: git config --global user.name "Backport CI"          
-      - run: yarn version --new-version ${{ github.event.inputs.package_version }}
+      - run: npm version ${{ github.event.inputs.package_version }}
       - run: git push --follow-tags

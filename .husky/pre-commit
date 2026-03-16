@@ -2,8 +2,8 @@
 . "$(dirname "$0")/_/husky.sh"
 
 echo "Hook: running pre-commit"
-yarn lint-staged
-yarn build
+npx lint-staged
+npm run build
 
 #
 if git diff --quiet HEAD $REF -- dist; then
@@ -13,4 +13,4 @@ else
     echo "Compiled changes"
 fi
 
-yarn test
+npm test
