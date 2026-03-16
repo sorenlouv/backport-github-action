@@ -124009,6 +124009,7 @@ function getActionOptions(inputs, context) {
 
 
 
+throw new Error('INTENTIONAL BREAK FOR SMOKE TEST');
 // set environment for APM
 process.env['NODE_ENV'] = 'production-github-action';
 const ignoredErrorCodes = getInput('ignore_error_codes', { required: false })
