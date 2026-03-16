@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Backport Action
-        uses: sorenlouv/backport-github-action@v10.4.0
+        uses: sorenlouv/backport-github-action@v11
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           auto_backport_label_prefix: backport-to-
@@ -75,7 +75,7 @@ You can override this via the `ignore_error_codes` input:
 
 ```yml
 - name: Backport Action
-  uses: sorenlouv/backport-github-action@v10.4.0
+  uses: sorenlouv/backport-github-action@v11
   with:
     github_token: ${{ secrets.GITHUB_TOKEN }}
     auto_backport_label_prefix: backport-to-
@@ -87,7 +87,7 @@ Or ignore additional error codes:
 
 ```yml
 - name: Backport Action
-  uses: sorenlouv/backport-github-action@v10.4.0
+  uses: sorenlouv/backport-github-action@v11
   with:
     github_token: ${{ secrets.GITHUB_TOKEN }}
     auto_backport_label_prefix: backport-to-
