@@ -76,6 +76,19 @@ export default [
     },
   },
 
+  // Scripts (e2e smoke test etc.) — allow console, add timer globals
+  {
+    files: ['scripts/**/*.ts'],
+    rules: {
+      'no-console': 'off',
+    },
+    languageOptions: {
+      globals: {
+        setTimeout: 'readonly',
+      },
+    },
+  },
+
   // Test files - relaxed rules and Vitest globals
   {
     files: ['**/*.test.ts'],
