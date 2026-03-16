@@ -2,8 +2,6 @@ import * as core from '@actions/core';
 import { context } from '@actions/github';
 import { getFailureMessage, run } from './run.js';
 
-throw new Error('INTENTIONAL BREAK FOR SMOKE TEST');
-
 // set environment for APM
 process.env['NODE_ENV'] = 'production-github-action';
 
