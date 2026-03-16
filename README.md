@@ -62,3 +62,37 @@ For more fine grained customization, and for the ability to run the [Backport To
 
  See the [Backport Tool documentation](https://github.com/sorenlouv/backport/blob/main/docs/config-file-options.md) for all configuration options.
 
+## Error handling
+
+By default the action ignores `merge-conflict-exception` and `no-branches-exception`. These are the most common "expected" outcomes:
+
+- **`merge-conflict-exception`**: The cherry-pick had conflicts. The backport tool already posts a detailed status comment on the source PR, so a CI failure adds no actionable information.
+- **`no-branches-exception`**: The PR has no matching backport labels. This fires on every merged PR that doesn't need backporting, so failing CI would be noise.
+
+All other errors (permissions issues, config errors, GitHub API failures, etc.) will fail the CI job.
+
+You can override this via the `ignore_error_codes` input:
+
+```yml
+- name: Backport Action
+  uses: sorenlouv/backport-github-action@v10.4.0
+  with:
+    github_token: ${{ secrets.GITHUB_TOKEN }}
+    auto_backport_label_prefix: backport-to-
+    # fail CI on all errors including merge conflicts
+    ignore_error_codes: ""
+```
+
+Or ignore additional error codes:
+
+```yml
+- name: Backport Action
+  uses: sorenlouv/backport-github-action@v10.4.0
+  with:
+    github_token: ${{ secrets.GITHUB_TOKEN }}
+    auto_backport_label_prefix: backport-to-
+    ignore_error_codes: "merge-conflict-exception,no-branches-exception,auto-merge-not-available-exception"
+```
+
+See [`BackportErrorCode` in backport-error.ts](https://github.com/sorenlouv/backport/blob/main/src/lib/backport-error.ts) for the full list of valid error codes.
+

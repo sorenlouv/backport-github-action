@@ -3,3 +3,4 @@
 /.missing-tsc-build
 /.eslintcache
 /ts-dist
+.DS_Store

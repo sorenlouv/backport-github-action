@@ -1,9 +1,9 @@
 import * as core from '@actions/core';
 import type { context } from '@actions/github';
 import {
-  BackportResponse,
+  type BackportResponse,
+  type ErrorResult,
   backportRun,
-  UnhandledErrorResult,
   getOptionsFromGithub,
 } from 'backport';
 
@@ -28,7 +28,7 @@ export async function run({
   const pullRequest = context.payload.pull_request;
   if (pullRequest && !pullRequest.merged) {
     core.info('PR is not merged. Skipping backport.');
-    return { status: 'success', commits: [], results: [] };
+    return { commits: [], results: [] };
   }
 
   const options = getActionOptions(inputs, context);
@@ -57,25 +57,16 @@ export async function run({
   return result;
 }
 
-export function getFailureMessage(res: BackportResponse) {
-  switch (res.status) {
-    case 'failure':
-    case 'aborted':
-      return res.errorMessage;
-
-    case 'success': {
-      const unhandledErrorResults = res.results.filter(
-        (res): res is UnhandledErrorResult => res.status === 'unhandled-error',
-      );
-
-      // only return message if there are unhandled errors
-      // handled errors should not be output
-      if (unhandledErrorResults.length > 0) {
-        return `Unhandled errors: ${unhandledErrorResults
-          .map((res) => res.error.message)
-          .join(', ')}`;
-      }
-    }
+export function getFailureMessage(
+  res: BackportResponse,
+  ignoredErrorCodes: string[] = [],
+) {
+  const errors = res.results.filter(
+    (r): r is ErrorResult =>
+      r.status === 'error' && !ignoredErrorCodes.includes(r.errorCode),
+  );
+  if (errors.length > 0) {
+    return errors.map((r) => r.errorMessage).join(', ');
   }
 }
 
@@ -98,7 +89,7 @@ function getActionOptions(inputs: Inputs, context: Context) {
       inputs.autoBackportLabelPrefix !== ''
         ? { [`^${inputs.autoBackportLabelPrefix}(.+)$`]: '$1' }
         : undefined,
-    gitHostname: context.serverUrl.replace(/^https{0,1}:\/\//, ''), // support for Github enterprise,
+    gitHostname: context.serverUrl.replace(/^https{0,1}:\/\//, ''),
     githubActionRunId: runId,
     githubApiBaseUrlV3: context.apiUrl,
     githubApiBaseUrlV4: context.graphqlUrl,

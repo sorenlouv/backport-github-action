@@ -14,6 +14,17 @@ inputs:
     description: Boolean, if set to true the reviewers of the original PR will also be added to the backport PRs
     required: false
     default: false
+  ignore_error_codes:
+    description: >
+      Comma-separated list of BackportError codes that should NOT fail the action.
+      By default, merge-conflict-exception and no-branches-exception are ignored
+      because merge conflicts are already surfaced via PR status comments,
+      and no-branches fires on every merged PR without backport labels.
+      Set to "" (empty string) to fail on all errors.
+      See https://github.com/sorenlouv/backport/blob/main/src/lib/backport-error.ts
+      for a full list of valid error codes.
+    required: false
+    default: 'merge-conflict-exception,no-branches-exception'
 runs:
   using: 'node24'
   main: 'dist/index.js'

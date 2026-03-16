@@ -1,6 +1,6 @@
 {
   "name": "backport-github-action",
-  "version": "10.4.0",
+  "version": "11.0.0-beta.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -19,7 +19,7 @@
     "@actions/github": "^5.1.1",
     "@octokit/action": "^4.0.8",
     "@octokit/graphql": "^5.0.1",
-    "backport": "10.4.0",
+    "backport": "11.0.0-beta.0",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
@@ -28,7 +28,7 @@
     "@types/node": "^25.5.0",
     "@typescript-eslint/eslint-plugin": "^8.57.0",
     "@typescript-eslint/parser": "^8.57.0",
-    "@vercel/ncc": "^0.36.1",
+    "@vercel/ncc": "^0.38.4",
     "eslint": "^10.0.3",
     "eslint-plugin-import-x": "^4.16.2",
     "husky": "^9.1.7",
