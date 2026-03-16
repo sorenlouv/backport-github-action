@@ -4,6 +4,13 @@ import type { BackportResponse } from 'backport';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getFailureMessage, run } from './run.js';
 
+vi.mock('@actions/core', () => ({
+  info: vi.fn(),
+  setFailed: vi.fn(),
+  getInput: vi.fn(),
+  setOutput: vi.fn(),
+}));
+
 vi.mock('backport', () => ({
   backportRun: vi.fn(),
   getOptionsFromGithub: vi.fn(),
@@ -26,8 +33,6 @@ describe('run', () => {
     vi.mocked(getCommits).mockResolvedValue(
       [{ suggestedTargetBranches: ['7.x'] }] as any,
     );
-
-    vi.spyOn(core, 'info').mockReturnValue();
 
     await run({
       inputs: {
@@ -79,7 +84,7 @@ describe('run', () => {
     const { backportRun } = await import('backport');
     const spy = vi.mocked(backportRun);
 
-    const infoSpy = vi.spyOn(core, 'info').mockReturnValue();
+    const infoSpy = vi.mocked(core.info);
 
     const result = await run({
       inputs: {
@@ -114,8 +119,6 @@ describe('run', () => {
     const { backportRun, getOptionsFromGithub } = await import('backport');
     const spy = vi.mocked(backportRun);
     vi.mocked(getOptionsFromGithub).mockResolvedValue({} as any);
-
-    vi.spyOn(core, 'info').mockReturnValue();
 
     const p = run({
       inputs: {
