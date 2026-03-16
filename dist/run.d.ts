@@ -1,5 +1,6 @@
-import { Context } from '@actions/github/lib/context';
+import type { context } from '@actions/github';
 import { BackportResponse } from 'backport';
+type Context = typeof context;
 type Inputs = {
     accessToken: string;
     autoBackportLabelPrefix: string;

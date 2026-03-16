@@ -1,11 +1,13 @@
 import * as core from '@actions/core';
-import { Context } from '@actions/github/lib/context';
+import type { context } from '@actions/github';
 import {
   BackportResponse,
   backportRun,
   UnhandledErrorResult,
   getOptionsFromGithub,
 } from 'backport';
+
+type Context = typeof context;
 
 type Inputs = {
   accessToken: string;

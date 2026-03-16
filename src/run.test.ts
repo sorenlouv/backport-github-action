@@ -1,28 +1,29 @@
 import * as core from '@actions/core';
-import { Context } from '@actions/github/lib/context';
+import type { context } from '@actions/github';
 import * as backport from 'backport';
-import { getFailureMessage, run } from './run';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { getFailureMessage, run } from './run.js';
+
+type Context = typeof context;
 
 describe('run', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('calls backport with correct arguments', async () => {
-    const spy = jest
+    const spy = vi
       .spyOn(backport, 'backportRun')
       // @ts-expect-error
       .mockResolvedValue('backport return value');
 
     // @ts-expect-error
-    jest.spyOn(backport, 'getOptionsFromGithub').mockResolvedValue({});
-    jest
-      .spyOn(backport, 'getCommits')
+    vi.spyOn(backport, 'getOptionsFromGithub').mockResolvedValue({});
+    vi.spyOn(backport, 'getCommits')
       //@ts-expect-error
       .mockResolvedValue([{ suggestedTargetBranches: ['7.x'] }]);
 
-    // disable logs
-    jest.spyOn(core, 'info').mockReturnValue();
+    vi.spyOn(core, 'info').mockReturnValue();
 
     await run({
       inputs: {
@@ -71,9 +72,9 @@ describe('run', () => {
   });
 
   it('skips backport gracefully when PR is not merged', async () => {
-    const spy = jest.spyOn(backport, 'backportRun');
+    const spy = vi.spyOn(backport, 'backportRun');
 
-    const infoSpy = jest.spyOn(core, 'info').mockReturnValue();
+    const infoSpy = vi.spyOn(core, 'info').mockReturnValue();
 
     const result = await run({
       inputs: {
@@ -105,13 +106,12 @@ describe('run', () => {
   });
 
   it('aborts if no targetBranches, branchLabelMappings or autoBackportLabelPrefix are provided', async () => {
-    const spy = jest.spyOn(backport, 'backportRun');
+    const spy = vi.spyOn(backport, 'backportRun');
 
     // @ts-expect-error
-    jest.spyOn(backport, 'getOptionsFromGithub').mockResolvedValue({});
+    vi.spyOn(backport, 'getOptionsFromGithub').mockResolvedValue({});
 
-    // disable logs
-    jest.spyOn(core, 'info').mockReturnValue();
+    vi.spyOn(core, 'info').mockReturnValue();
 
     const p = run({
       inputs: {

@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import { context } from '@actions/github';
-import { getFailureMessage, run } from './run';
+import { getFailureMessage, run } from './run.js';
 
 // set environment for APM
 process.env['NODE_ENV'] = 'production-github-action';
