@@ -124009,8 +124009,6 @@ function getActionOptions(inputs, context) {
 
 
 
-// set environment for APM
-process.env['NODE_ENV'] = 'production-github-action';
 const ignoredErrorCodes = getInput('ignore_error_codes', { required: false })
     .split(',')
     .map((code) => code.trim())
