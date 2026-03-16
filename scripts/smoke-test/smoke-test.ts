@@ -7,7 +7,9 @@ import {
   createFile,
   createPr,
   findBackportPr,
+  findStatusComment,
   getMasterSha,
+  getPrBody,
   mergePr,
   updateWorkflowFile,
   waitForRun,
@@ -29,6 +31,7 @@ const ctx: TestContext = {
   repo: { owner: 'backport-org', repo: 'backport-demo' },
   branchesToDelete: [],
   prsToClose: [],
+  filesToDelete: [],
   originalWorkflowSha: null,
 };
 
@@ -90,6 +93,17 @@ async function testHappyPath(): Promise<number> {
     ctx.branchesToDelete.push(backportPr.headRefName);
   }
 
+  const statusComment = await findStatusComment(
+    ctx,
+    prNumber,
+    'All backports created successfully',
+  );
+  failures += assert(
+    statusComment !== null,
+    'Status comment posted on source PR',
+    'No status comment found on source PR',
+  );
+
   return failures;
 }
 
@@ -148,6 +162,86 @@ async function testNoLabels(): Promise<number> {
 }
 
 // -------------------------------------------------------------------------
+// Test 3: Merge conflict — auto-resolved with theirs strategy
+// -------------------------------------------------------------------------
+async function testMergeConflictAutoResolve(): Promise<number> {
+  header('Test 3: Merge conflict — auto-resolved with theirs strategy');
+  let failures = 0;
+  const conflictFile = `e2e-conflict-${timestamp}.txt`;
+
+  log('Creating conflicting file on production branch');
+  await createFile(
+    ctx,
+    'production',
+    conflictFile,
+    `production content ${timestamp}\n`,
+    'e2e: add conflict file on production',
+  );
+  ctx.filesToDelete.push({ branch: 'production', path: conflictFile });
+
+  const branch = `e2e-conflict-${timestamp}`;
+  const baseSha = await getMasterSha(ctx);
+  log(`Creating branch ${branch} from ${baseSha.slice(0, 7)}`);
+  await createBranch(ctx, branch, baseSha);
+
+  log('Committing same file with different content on master branch');
+  await createFile(
+    ctx,
+    branch,
+    conflictFile,
+    `master content ${timestamp}\n`,
+    'e2e: add conflict file on master',
+  );
+
+  log('Creating PR with label auto-backport-to-production');
+  const prNumber = await createPr(
+    ctx,
+    branch,
+    `e2e: conflict test (${timestamp})`,
+    ['auto-backport-to-production'],
+  );
+  log(`Created PR #${prNumber}`);
+
+  log(`Merging PR #${prNumber}`);
+  const mergedAfter = new Date().toISOString();
+  await mergePr(ctx, prNumber);
+
+  const { conclusion, runId } = await waitForRun(ctx, prNumber, mergedAfter);
+
+  failures += assert(
+    conclusion === 'success',
+    `Workflow run #${runId} succeeded`,
+    `Workflow run #${runId} concluded with: ${conclusion}`,
+  );
+
+  await sleep(5000);
+
+  const backportPr = await findBackportPr(ctx, 'production', prNumber);
+
+  failures += assert(
+    backportPr !== null,
+    'Backport PR to production was created despite conflict',
+    'No backport PR targeting production was found',
+  );
+
+  if (backportPr) {
+    log(`  PR #${backportPr.number} (branch: ${backportPr.headRefName})`);
+
+    const body = await getPrBody(ctx, backportPr.number);
+    failures += assert(
+      body.includes('--strategy-option=theirs'),
+      'Backport PR body mentions conflict auto-resolution',
+      'Backport PR body does not mention conflict auto-resolution',
+    );
+
+    ctx.prsToClose.push(backportPr.number);
+    ctx.branchesToDelete.push(backportPr.headRefName);
+  }
+
+  return failures;
+}
+
+// -------------------------------------------------------------------------
 // Main
 // -------------------------------------------------------------------------
 console.error('');
@@ -162,6 +256,7 @@ try {
   await updateWorkflowFile(ctx, actionRef);
   failures += await testHappyPath();
   failures += await testNoLabels();
+  failures += await testMergeConflictAutoResolve();
 } finally {
   await cleanup(ctx);
 }

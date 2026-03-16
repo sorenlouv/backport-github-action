@@ -7,6 +7,7 @@ export interface TestContext {
   repo: { owner: string; repo: string };
   branchesToDelete: string[];
   prsToClose: number[];
+  filesToDelete: Array<{ branch: string; path: string }>;
   originalWorkflowSha: string | null;
 }
 
@@ -265,6 +266,56 @@ export async function findBackportPr(
   };
 }
 
+export async function findStatusComment(
+  ctx: TestContext,
+  prNumber: number,
+  substring: string,
+): Promise<string | null> {
+  const comments = await ctx.octokit.issues.listComments({
+    ...ctx.repo,
+    issue_number: prNumber,
+    per_page: 30,
+  });
+  const match = comments.data.find((c) => c.body?.includes(substring));
+  return match?.body ?? null;
+}
+
+export async function getPrBody(
+  ctx: TestContext,
+  prNumber: number,
+): Promise<string> {
+  const pr = await ctx.octokit.pulls.get({
+    ...ctx.repo,
+    pull_number: prNumber,
+  });
+  return pr.data.body ?? '';
+}
+
+export async function deleteFile(
+  ctx: TestContext,
+  branch: string,
+  path: string,
+  message: string,
+): Promise<void> {
+  const file = await ctx.octokit.repos.getContent({
+    ...ctx.repo,
+    path,
+    ref: branch,
+  });
+
+  if (!('sha' in file.data)) {
+    throw new Error('Unexpected response from getContent');
+  }
+
+  await ctx.octokit.repos.deleteFile({
+    ...ctx.repo,
+    path,
+    message,
+    sha: file.data.sha,
+    branch,
+  });
+}
+
 export async function cleanup(ctx: TestContext): Promise<void> {
   log('Running cleanup...');
 
@@ -278,6 +329,15 @@ export async function cleanup(ctx: TestContext): Promise<void> {
       });
     } catch {
       // PR may already be closed/merged
+    }
+  }
+
+  for (const { branch, path } of ctx.filesToDelete) {
+    try {
+      log(`  Deleting file ${path} on ${branch}`);
+      await deleteFile(ctx, branch, path, `e2e: clean up ${path}`);
+    } catch {
+      // File may already be deleted
     }
   }
 
