@@ -1,13 +1,14 @@
 {
   "name": "backport-github-action",
-  "version": "11.0.0-beta.0",
+  "version": "11.0.0-beta.1",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "npx ncc build src/index.ts -o dist",
     "prepare": "husky",
     "lint": "eslint './**/*.{ts,js}'",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "bash e2e-test.sh"
   },
   "engines": {
     "node": ">=22.0.0"
@@ -19,7 +20,7 @@
     "@actions/github": "^9.0.0",
     "@octokit/action": "^8.0.4",
     "@octokit/graphql": "^9.0.3",
-    "backport": "11.0.0-beta.0",
+    "backport": "11.0.0-beta.1",
     "lodash": "^4.17.23"
   },
   "devDependencies": {

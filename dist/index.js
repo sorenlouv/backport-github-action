@@ -100113,11 +100113,14 @@ function findPackageJson() {
         }
         dir = (0,external_node_path_namespaceObject.dirname)(dir);
     }
-    throw new Error('Could not find backport package.json');
+    return undefined;
 }
-const pkg = JSON.parse((0,external_node_fs_namespaceObject.readFileSync)(findPackageJson(), 'utf8'));
+const packageJsonPath = findPackageJson();
+const packageVersion = packageJsonPath
+    ? JSON.parse((0,external_node_fs_namespaceObject.readFileSync)(packageJsonPath, 'utf8')).version
+    : 'unknown';
 function getPackageVersion() {
-    return pkg.version;
+    return packageVersion;
 }
 //# sourceMappingURL=package-version.js.map
 ;// CONCATENATED MODULE: ./node_modules/@octokit/rest/node_modules/@octokit/plugin-request-log/dist-src/version.js
