@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npx ncc build src/index.ts -o dist",
     "prepare": "husky",
-    "lint": "eslint './**/*.{ts,js}'",
+    "lint": "eslint '{src,scripts}/**/*.ts' && tsc --noEmit --project tsconfig.eslint.json",
     "test": "vitest run",
     "test:e2e": "npx tsx scripts/smoke-test/smoke-test.ts",
     "release": "npx tsx scripts/release/release.ts"
