@@ -36,10 +36,10 @@ describe('run', () => {
 
     await run({
       inputs: {
-        accessToken: 'very-secret',
+        githubToken: 'very-secret',
         autoBackportLabelPrefix: 'backport-to-',
         repoForkOwner: '',
-        addOriginalReviewers: true,
+        copySourcePRReviewers: true,
       },
       context: {
         repo: { owner: 'elastic', repo: 'kibana' },
@@ -60,7 +60,7 @@ describe('run', () => {
     expect(spy).toHaveBeenCalledWith({
       exitCodeOnFailure: false,
       options: {
-        accessToken: 'very-secret',
+        githubToken: 'very-secret',
         assignees: ['sorenlouv'],
         branchLabelMapping: {
           '^backport-to-(.+)$': '$1',
@@ -88,10 +88,10 @@ describe('run', () => {
 
     const result = await run({
       inputs: {
-        accessToken: 'very-secret',
+        githubToken: 'very-secret',
         autoBackportLabelPrefix: 'backport-to-',
         repoForkOwner: '',
-        addOriginalReviewers: false,
+        copySourcePRReviewers: false,
       },
       context: {
         repo: { owner: 'elastic', repo: 'kibana' },
@@ -122,10 +122,10 @@ describe('run', () => {
 
     const p = run({
       inputs: {
-        accessToken: 'very-secret',
+        githubToken: 'very-secret',
         autoBackportLabelPrefix: '',
         repoForkOwner: '',
-        addOriginalReviewers: true,
+        copySourcePRReviewers: true,
       },
       context: {
         repo: { owner: 'elastic', repo: 'kibana' },

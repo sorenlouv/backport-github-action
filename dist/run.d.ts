@@ -2,10 +2,10 @@ import type { context } from '@actions/github';
 import { type BackportResponse } from 'backport';
 type Context = typeof context;
 type Inputs = {
-    accessToken: string;
+    githubToken: string;
     autoBackportLabelPrefix: string;
     repoForkOwner: string;
-    addOriginalReviewers: boolean;
+    copySourcePRReviewers: boolean;
 };
 export declare function run({ context, inputs, }: {
     context: Context;

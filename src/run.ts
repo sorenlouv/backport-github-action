@@ -10,10 +10,10 @@ import {
 type Context = typeof context;
 
 type Inputs = {
-  accessToken: string;
+  githubToken: string;
   autoBackportLabelPrefix: string;
   repoForkOwner: string;
-  addOriginalReviewers: boolean;
+  copySourcePRReviewers: boolean;
 };
 
 export async function run({
@@ -33,7 +33,7 @@ export async function run({
 
   const options = getActionOptions(inputs, context);
   const optionsFromGithub = await getOptionsFromGithub({
-    accessToken: options.accessToken,
+    githubToken: options.githubToken,
     repoName: options.repoName,
     repoOwner: options.repoOwner,
     githubApiBaseUrlV4: options.githubApiBaseUrlV4,
@@ -83,7 +83,7 @@ function getActionOptions(inputs: Inputs, context: Context) {
     | undefined;
 
   const options = {
-    accessToken: inputs.accessToken,
+    githubToken: inputs.githubToken,
     assignees: [pullRequest.user.login as string],
     branchLabelMapping:
       inputs.autoBackportLabelPrefix !== ''
@@ -101,7 +101,7 @@ function getActionOptions(inputs: Inputs, context: Context) {
     repoName: repo.repo,
     repoOwner: repo.owner,
     reviewers:
-      inputs.addOriginalReviewers && Array.isArray(requestedReviewers)
+      inputs.copySourcePRReviewers && Array.isArray(requestedReviewers)
         ? requestedReviewers.map((reviewer) => reviewer.login)
         : [],
   };

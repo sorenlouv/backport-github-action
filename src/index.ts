@@ -11,7 +11,7 @@ const ignoredErrorCodes = core
 run({
   context,
   inputs: {
-    accessToken: core.getInput('github_token', {
+    githubToken: core.getInput('github_token', {
       required: true,
     }),
     autoBackportLabelPrefix: core.getInput('auto_backport_label_prefix', {
@@ -20,7 +20,7 @@ run({
     repoForkOwner: core.getInput('repo_fork_owner', {
       required: false,
     }),
-    addOriginalReviewers: core.getBooleanInput('add_original_reviewers', {
+    copySourcePRReviewers: core.getBooleanInput('copy_source_pr_reviewers', {
       required: false,
     }),
   },
