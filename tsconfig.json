@@ -6,6 +6,7 @@
     "lib": ["ES2024"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "rootDir": "./src",
     "outDir": "./ts-dist",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
