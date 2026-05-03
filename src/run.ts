@@ -78,9 +78,6 @@ function getActionOptions(inputs: Inputs, context: Context) {
     throw Error('Only pull_request events are supported.');
   }
 
-  const requestedReviewers = pullRequest.requested_reviewers as
-    | Array<{ login: string }>
-    | undefined;
 
   const options = {
     githubToken: inputs.githubToken,
@@ -100,10 +97,7 @@ function getActionOptions(inputs: Inputs, context: Context) {
       inputs.repoForkOwner !== '' ? inputs.repoForkOwner : repo.owner,
     repoName: repo.repo,
     repoOwner: repo.owner,
-    reviewers:
-      inputs.copySourcePRReviewers && Array.isArray(requestedReviewers)
-        ? requestedReviewers.map((reviewer) => reviewer.login)
-        : [],
+    copySourcePRReviewers: inputs.copySourcePRReviewers,
   };
 
   return options;

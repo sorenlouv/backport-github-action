@@ -25,14 +25,17 @@ describe('run', () => {
   });
 
   it('calls backport with correct arguments', async () => {
-    const { backportRun, getOptionsFromGithub, getCommits } = await import('backport');
-    const spy = vi.mocked(backportRun).mockResolvedValue(
-      'backport return value' as unknown as BackportResponse,
-    );
+    const { backportRun, getOptionsFromGithub, getCommits } =
+      await import('backport');
+    const spy = vi
+      .mocked(backportRun)
+      .mockResolvedValue(
+        'backport return value' as unknown as BackportResponse,
+      );
     vi.mocked(getOptionsFromGithub).mockResolvedValue({} as any);
-    vi.mocked(getCommits).mockResolvedValue(
-      [{ suggestedTargetBranches: ['7.x'] }] as any,
-    );
+    vi.mocked(getCommits).mockResolvedValue([
+      { suggestedTargetBranches: ['7.x'] },
+    ] as any);
 
     await run({
       inputs: {
@@ -75,7 +78,7 @@ describe('run', () => {
         githubActionRunId: undefined,
         githubApiBaseUrlV3: 'https://github.my-own-enterprise.com/api/v3',
         githubApiBaseUrlV4: 'https://github.my-own-enterprise.com/api/graphql',
-        reviewers: ['sorenlouv'],
+        copySourcePRReviewers: true,
       },
     });
   });
