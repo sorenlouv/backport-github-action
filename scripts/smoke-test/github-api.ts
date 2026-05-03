@@ -212,7 +212,7 @@ export async function updateWorkflowFile(
 }
 
 export async function restoreWorkflowFile(ctx: TestContext): Promise<void> {
-  log('Restoring workflow to original version (@v11)');
+  log('Restoring workflow to original version (@v12)');
 
   const file = await ctx.octokit.repos.getContent({
     ...ctx.repo,
@@ -223,12 +223,12 @@ export async function restoreWorkflowFile(ctx: TestContext): Promise<void> {
     throw new Error('Unexpected response from getContent');
   }
 
-  const originalContent = makeWorkflowContent('v11');
+  const originalContent = makeWorkflowContent('v12');
 
   await ctx.octokit.repos.createOrUpdateFileContents({
     ...ctx.repo,
     path: WORKFLOW_PATH,
-    message: 'e2e: restore action to @v11',
+    message: 'e2e: restore action to @v12',
     content: Buffer.from(originalContent).toString('base64'),
     sha: file.data.sha,
     branch: 'master',
