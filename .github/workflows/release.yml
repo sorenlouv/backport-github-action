@@ -1,0 +1,68 @@
+name: release
+
+# Publishes a GitHub release whenever the `backport` version bundled on main is not
+# yet released. The action's version mirrors backport's (backport 12.1.0 -> v12.1.0),
+# and the floating major tag (v12) is moved to it. This is a GitHub Action: consumers
+# use `uses: sorenlouv/backport-github-action@v12`, which runs the committed
+# dist/index.js at that tag — it is not published to npm.
+on:
+  push:
+    branches: [main]
+
+# Serialize releases so two quick merges can't race on tags.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write # create the release tag, move the major tag, create the release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      HUSKY: '0' # skip git hooks in CI
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # need tags to tell whether this version is already released
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # Mirror the bundled backport version (bumped on main by Dependabot).
+          VERSION=$(node -p "require('./node_modules/backport/package.json').version")
+          MAJOR=${VERSION%%.*}
+
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            echo "v$VERSION is already released — nothing to do."
+            exit 0
+          fi
+
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          npm run build
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: release v$VERSION" --no-verify
+          git tag "v$VERSION"
+          git tag -f "v$MAJOR"
+
+          # Push only tags (never the protected main branch), so the built-in
+          # GITHUB_TOKEN is sufficient — no PAT or branch-protection bypass needed.
+          git push origin "v$VERSION"
+          git push --force origin "v$MAJOR"
+
+          gh release create "v$VERSION" --generate-notes --latest

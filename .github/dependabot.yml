@@ -4,6 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
+    # NOTE: do not re-add a wildcard `ignore` for minor/patch updates. `backport`
+    # must be tracked at every level (major, minor, patch) so the release workflow
+    # can mirror its version — a wildcard ignore is exactly what previously kept the
+    # action pinned behind backport. If unrelated-dependency noise becomes a problem,
+    # add a targeted ignore for those specific dependencies, never `dependency-name: "*"`.
