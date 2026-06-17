@@ -1,40 +1,31 @@
 name: release
 
-# Every push to main publishes a release as a Git tag. This is a GitHub Action:
-# consumers reference `uses: sorenlouv/backport-github-action@v12`, which resolves
-# to the committed dist/index.js at that tag (it is NOT fetched from npm).
-#
-# The action mirrors the version of its bundled `backport` dependency: if backport
-# is 12.1.0, the action releases as v12.1.0. A merge that does NOT change backport
-# (an action-only change) reuses that base with a revision suffix: v12.1.0-1, -2, …
-#
-# The release commit (version bump + rebuilt dist) is captured by the tag and is
-# NOT pushed to protected main, so the built-in GITHUB_TOKEN is enough — no PAT,
-# App token, or branch-protection bypass required.
+# Publishes a GitHub release whenever the `backport` version bundled on main is not
+# yet released. The action's version mirrors backport's (backport 12.1.0 -> v12.1.0),
+# and the floating major tag (v12) is moved to it. This is a GitHub Action: consumers
+# use `uses: sorenlouv/backport-github-action@v12`, which runs the committed
+# dist/index.js at that tag — it is not published to npm.
 on:
   push:
     branches: [main]
 
-# Serialize releases so two quick merges can't race on tags/version.
+# Serialize releases so two quick merges can't race on tags.
 concurrency:
   group: release
   cancel-in-progress: false
 
 permissions:
-  contents: write # push the release tag, move the major tag, and create the GitHub Release
+  contents: write # create the release tag, move the major tag, create the release
 
 jobs:
   release:
     runs-on: ubuntu-latest
-    # We push only tags (never main), so a release can't re-trigger this workflow.
-    # The guard is harmless insurance in case that ever changes.
-    if: "${{ !startsWith(github.event.head_commit.message, 'chore: release') }}"
     env:
-      HUSKY: '0' # don't install git hooks in CI; pre-commit would rebuild/test on our release commit
+      HUSKY: '0' # skip git hooks in CI
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # need the full tag history to compute the next version
+          fetch-depth: 0 # need tags to tell whether this version is already released
 
       - uses: actions/setup-node@v4
         with:
@@ -51,72 +42,27 @@ jobs:
         run: |
           set -euo pipefail
 
-          # The version we ship is the installed `backport` version (resolved from
-          # package-lock.json by `npm ci`, e.g. after a Dependabot bump). Read it via
-          # fs — `require('backport/package.json')` is blocked by backport's exports map.
-          BASE=$(node -p "JSON.parse(require('node:fs').readFileSync('node_modules/backport/package.json','utf8')).version")
-
-          # If v$BASE is already released, this merge didn't bump backport, so it's
-          # an action-only change: publish the next revision (-1, -2, ...).
-          VERSION=$(node -e '
-            const { execSync } = require("node:child_process");
-            const base = process.argv[1];
-            const tags = execSync("git tag --list", { encoding: "utf8" })
-              .split("\n").map((s) => s.trim()).filter(Boolean);
-            if (!tags.includes("v" + base)) {
-              process.stdout.write(base);
-              process.exit(0);
-            }
-            const re = new RegExp("^v" + base.replace(/\./g, "\\.") + "-(\\d+)$");
-            let max = 0;
-            for (const t of tags) {
-              const m = t.match(re);
-              if (m) max = Math.max(max, Number(m[1]));
-            }
-            process.stdout.write(base + "-" + (max + 1));
-          ' "$BASE")
-
+          # Mirror the bundled backport version (bumped on main by Dependabot).
+          VERSION=$(node -p "require('./node_modules/backport/package.json').version")
           MAJOR=${VERSION%%.*}
-          echo "Releasing v$VERSION (bundles backport@$BASE, major v$MAJOR)"
 
-          # By construction v$VERSION is new, but guard against re-run races.
           if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
-            echo "Tag v$VERSION already exists; nothing to release."
+            echo "v$VERSION is already released — nothing to do."
             exit 0
           fi
 
-          # Set the action's own version. The `backport` dependency is left as-is
-          # (for a revision release it stays at $BASE while the version becomes $BASE-N).
           npm version "$VERSION" --no-git-tag-version --allow-same-version
-
-          # Rebuild the committed bundle (dist/) against the installed backport.
           npm run build
-
-          # Pin the README's copy-paste snippet to the current major. This lands in
-          # the tagged release commit (below), not on main.
-          sed -i -E "s#backport-github-action@v[0-9]+#backport-github-action@v${MAJOR}#g" README.md
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          # Commit the version bump + rebuilt dist locally. We deliberately do NOT
-          # push this to main (it's protected and requires a PR). The commit is
-          # captured by the tag below — reachable via the tag, one commit ahead of
-          # main, which is all that `uses: …@vMAJOR` consumers need.
-          git commit --no-verify -m "chore: release v$VERSION"
-
+          git commit -am "chore: release v$VERSION" --no-verify
           git tag "v$VERSION"
-          git tag -f "v$MAJOR" # move the floating major tag (e.g. v12) to this release
+          git tag -f "v$MAJOR"
 
-          # Push only tags. Tags aren't covered by branch protection, so the built-in
-          # GITHUB_TOKEN suffices (no PAT/bypass). Pushing a tag also uploads the
-          # release commit's objects that the tag points to.
+          # Push only tags (never the protected main branch), so the built-in
+          # GITHUB_TOKEN is sufficient — no PAT or branch-protection bypass needed.
           git push origin "v$VERSION"
-          git push -f origin "v$MAJOR"
+          git push --force origin "v$MAJOR"
 
-          # --latest forces this to be the "Latest" release even though a -N suffix
-          # is technically a semver pre-release; consumers track the major tag anyway.
-          gh release create "v$VERSION" \
-            --title "v$VERSION" \
-            --notes "Bundles backport@$BASE" \
-            --latest
+          gh release create "v$VERSION" --generate-notes --latest
