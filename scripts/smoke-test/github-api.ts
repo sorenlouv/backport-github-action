@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Octokit } from '@octokit/rest';
 import pRetry from 'p-retry';
 import { log, wait } from './logger.js';
@@ -12,6 +15,14 @@ export interface TestContext {
 }
 
 const WORKFLOW_PATH = '.github/workflows/backport.yml';
+
+// The action's current major version (e.g. "v12"), derived from package.json so the
+// smoke test always restores the demo repo to the right tag without manual edits.
+const ACTION_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+const { version: actionVersion } = JSON.parse(
+  readFileSync(resolve(ACTION_ROOT, 'package.json'), 'utf-8'),
+) as { version: string };
+const ACTION_MAJOR = `v${actionVersion.split('.')[0]}`;
 
 export async function getMasterSha(ctx: TestContext): Promise<string> {
   const ref = await ctx.octokit.git.getRef({
@@ -212,7 +223,7 @@ export async function updateWorkflowFile(
 }
 
 export async function restoreWorkflowFile(ctx: TestContext): Promise<void> {
-  log('Restoring workflow to original version (@v12)');
+  log(`Restoring workflow to original version (@${ACTION_MAJOR})`);
 
   const file = await ctx.octokit.repos.getContent({
     ...ctx.repo,
@@ -223,12 +234,12 @@ export async function restoreWorkflowFile(ctx: TestContext): Promise<void> {
     throw new Error('Unexpected response from getContent');
   }
 
-  const originalContent = makeWorkflowContent('v12');
+  const originalContent = makeWorkflowContent(ACTION_MAJOR);
 
   await ctx.octokit.repos.createOrUpdateFileContents({
     ...ctx.repo,
     path: WORKFLOW_PATH,
-    message: 'e2e: restore action to @v12',
+    message: `e2e: restore action to @${ACTION_MAJOR}`,
     content: Buffer.from(originalContent).toString('base64'),
     sha: file.data.sha,
     branch: 'master',

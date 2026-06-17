@@ -1,37 +1,56 @@
 ---
-
-## name: release-backport-action
-description: Release workflow for backport-github-action. Use when bumping the backport dependency, creating a release, or validating the action in the demo repo.
+name: release-backport-action
+description: How backport-github-action is released. Use when upgrading the backport dependency, cutting a release, or validating the action in the demo repo.
+---
 
 # Releasing backport-github-action
 
+Releases are **fully automated**. Every push to `main` runs
+[`.github/workflows/release.yml`](../../../.github/workflows/release.yml), which
+publishes a new release. There is no manual release script — do not look for
+`npm run release`.
+
 ## Version mapping
 
-Three values in `package.json` must stay in sync: `"version"`, `"backport"` (dependency), and the `uses:` tag in `README.md`.
+The action mirrors the version of its bundled `backport` dependency:
+
+- A merge that bumps `backport` to `12.1.0` releases the action as **`v12.1.0`**.
+- A merge that does **not** change `backport` (an action-only change) reuses the
+  current backport version with a revision suffix: **`v12.1.0-1`**, then
+  `-2`, and so on. The revision is computed from existing git tags.
+
+So `package.json` `"version"` is the action's own release version, while
+`"dependencies.backport"` is the version it ships. For a revision release they
+differ on purpose (`version: 12.1.0-1`, `backport: 12.1.0`).
+
+## What the release workflow does
+
+On each push to `main` (skipping its own `chore: release` commit) it:
+
+1. Reads the installed `backport` version and computes the next action version.
+2. Sets `package.json` version and rebuilds the committed bundle (`dist/`).
+3. Rewrites the `uses: …@vN` snippet in `README.md` to the current major.
+4. Commits, tags `vX.Y.Z`, force-moves the floating major tag `vN`, and creates
+   the GitHub Release (marked `--latest`).
+
+## Upgrading backport
+
+[Dependabot](../../../.github/dependabot.yml) opens a PR whenever a new
+`backport` is published (including minor/patch). Merge it — the workflow releases
+the matching action version automatically.
 
 ## Smoke test
 
-`npm run test:e2e` runs the automated smoke test against `backport-org/backport-demo`. It updates the demo workflow, creates and merges test PRs (happy path + no-labels), and verifies results. Pass a branch/tag explicitly: `npm run test:e2e -- v11-beta`.
+`npm run test:e2e` runs the smoke test against `backport-org/backport-demo`: it
+updates the demo workflow, opens and merges test PRs (happy path + no-labels),
+and verifies results. The restore target is derived from `package.json`, so no
+manual version edits are needed. Pass a branch/tag explicitly to test a
+pre-release: `npm run test:e2e -- v13-beta`.
 
-## Beta release workflow (breaking changes)
+## Pre-releases / betas
 
-Use when a breaking change spans both `backport` and `backport-github-action`. Existing users are never affected: `npm install backport` stays on `latest`, and action users on `@v10` are unaffected.
-
-### Step 1: Publish backport beta
-
-In the `backport` repo: bump version (`npm version premajor --preid beta`), build (`npx tsc -p tsconfig.build.json`), publish (`npm publish --tag beta`).
-
-### Step 2: Wire the action to the beta
-
-Create a feature branch (e.g. `v11-beta`), update `package.json` version and backport dependency to the beta, `npm install`, commit (pre-commit hook builds `dist/`), push. Do NOT merge to `main`.
-
-### Step 3: Test
-
-Run `npm run test:e2e -- v11-beta`.
-
-### Step 4: Promote to stable
-
-1. **backport**: `npm version <major>`, build, `npm publish`
-2. **backport-github-action**: update `package.json` + README to stable version, merge beta branch into `main`, tag (`v11` and `v11.0.0`), push tags
-3. **demo repo**: update workflow back to stable tag
-
+The automated flow only releases stable versions from `main`. A breaking change
+that spans both repos is still done manually: publish a `backport` beta (its own
+repo handles npm), point a feature branch's `package.json` at the beta, push the
+branch (do **not** merge to `main`), and smoke-test it with
+`npm run test:e2e -- <branch>`. Promote by merging to `main` once stable.

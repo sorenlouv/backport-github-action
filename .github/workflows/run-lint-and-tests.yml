@@ -1,8 +1,8 @@
 name: run-lint-and-tests
 
+# Pre-merge gate for pull requests. Pushes to main are covered by release.yml,
+# which runs the same lint/test/build before publishing.
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
