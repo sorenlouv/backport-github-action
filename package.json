@@ -31,7 +31,7 @@
     "eslint": "^10.3.0",
     "eslint-plugin-import-x": "^4.16.2",
     "husky": "^9.1.7",
-    "lint-staged": "^16.4.0",
+    "lint-staged": "^17.0.7",
     "p-retry": "^8.0.0",
     "prettier": "^3.8.3",
     "tsx": "^4.21.0",
