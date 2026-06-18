@@ -42,10 +42,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          # The action's version mirrors the bundled backport version. main already
-          # carries it in package.json (synced in the PR) — a release only pushes
-          # tags, never protected main, so it can't bump the version here.
-          VERSION=$(node -p "require('./node_modules/backport/package.json').version")
+          # The action's version mirrors the bundled backport version (the exact
+          # version resolved in the lockfile). main already carries it in package.json
+          # — the sync-version workflow mirrors it onto the PR branch — so a release
+          # only pushes tags, never protected main, and never bumps the version here.
+          VERSION=$(node -p "require('./package-lock.json').packages['node_modules/backport'].version")
           MAJOR=${VERSION%%.*}
 
           if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then

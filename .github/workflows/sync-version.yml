@@ -1,0 +1,44 @@
+name: sync-version
+
+# Keep the action's own version mirrored to its bundled `backport` dependency.
+# Dependabot bumps `backport` but can't bump the action's `version`, so this commits
+# the matching `npm version` back onto the PR branch. On merge, release.yml then tags
+# the correct version. (A release can't push to protected main, so the mirror has to
+# land in the PR.)
+#
+# pull_request_target runs in the base-repo context, so the built-in GITHUB_TOKEN can
+# push to the PR branch — no PAT or branch-protection bypass needed. It is deliberately
+# narrow: it runs ONLY on Dependabot's own PRs, and executes NO project or dependency
+# code (no `npm ci`, no build) — just `npm version`, which reads the committed lockfile
+# and rewrites the version field. So nothing untrusted runs with the write token.
+on:
+  pull_request_target:
+    paths:
+      - package.json
+      - package-lock.json
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+      - run: npm run sync-version
+      - name: Commit if the version changed
+        run: |
+          if git diff --quiet; then
+            echo "Action version already mirrors backport — nothing to do."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: mirror action version to backport"
+          git push
