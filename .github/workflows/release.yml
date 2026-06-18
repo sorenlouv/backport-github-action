@@ -42,7 +42,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Mirror the bundled backport version (bumped on main by Dependabot).
+          # The action's version mirrors the bundled backport version. main already
+          # carries it in package.json (synced in the PR) — a release only pushes
+          # tags, never protected main, so it can't bump the version here.
           VERSION=$(node -p "require('./node_modules/backport/package.json').version")
           MAJOR=${VERSION%%.*}
 
@@ -51,12 +53,17 @@ jobs:
             exit 0
           fi
 
-          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          # Fail loudly if main ever drifted instead of shipping a mismatched tag.
+          test "$(npm pkg get version | tr -d '"')" = "$VERSION" ||
+            { echo "::error::package.json version != backport ($VERSION). Run 'npm run sync-version' in the PR."; exit 1; }
+
           npm run build
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore: release v$VERSION" --no-verify
+          # The version field is already correct; this commit only captures the
+          # freshly built dist/ for the tag (--allow-empty: dist may already match).
+          git commit -am "chore: release v$VERSION" --no-verify --allow-empty
           git tag "v$VERSION"
           git tag -f "v$MAJOR"
 

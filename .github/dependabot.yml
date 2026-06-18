@@ -9,3 +9,8 @@ updates:
     # can mirror its version — a wildcard ignore is exactly what previously kept the
     # action pinned behind backport. If unrelated-dependency noise becomes a problem,
     # add a targeted ignore for those specific dependencies, never `dependency-name: "*"`.
+    #
+    # When a backport-bump PR lands here, also mirror the action's own version:
+    # `npm run sync-version && git commit -am "chore: mirror backport version"`.
+    # CI blocks the merge until package.json matches backport — see
+    # .cursor/skills/release-backport-action/SKILL.md.

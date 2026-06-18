@@ -22,6 +22,15 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
+      # The action's version must equal the bundled backport version. A PR that
+      # bumps backport must run `npm run sync-version` too, or main drifts behind
+      # the release. Keep this a required status check so it blocks merge.
+      - name: Verify version mirrors backport
+        run: |
+          have=$(npm pkg get version | tr -d '"')
+          want=$(node -p "require('./node_modules/backport/package.json').version")
+          test "$have" = "$want" ||
+            { echo "::error::package.json version ($have) must equal backport ($want). Run: npm run sync-version"; exit 1; }
       - run: npm run lint
       - run: npm test
       - run: npm run build

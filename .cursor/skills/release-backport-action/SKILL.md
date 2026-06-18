@@ -23,16 +23,32 @@ release rather than getting its own version.
 On each push to `main` it:
 
 1. Reads the bundled `backport` version. If `vX.Y.Z` is already tagged, it stops.
-2. Sets `package.json` to that version and rebuilds the committed bundle (`dist/`).
-3. Commits, tags `vX.Y.Z`, force-moves the major tag `vN`, and creates the GitHub
-   Release (`--generate-notes --latest`). Only tags are pushed (never `main`), so
-   the built-in `GITHUB_TOKEN` is sufficient.
+2. Checks that `package.json`'s `version` already equals it (the version is synced
+   in the PR, **not** here — the workflow only pushes tags, so a release-time bump
+   could never reach protected `main`). Then it rebuilds the bundle (`dist/`).
+3. Commits the rebuilt `dist/`, tags `vX.Y.Z`, force-moves the major tag `vN`, and
+   creates the GitHub Release (`--generate-notes --latest`). Only tags are pushed
+   (never `main`), so the built-in `GITHUB_TOKEN` is sufficient.
 
 ## Upgrading backport
 
-[Dependabot](../../../.github/dependabot.yml) opens a PR whenever a new
-`backport` is published (including minor/patch). Merge it — the workflow releases
-the matching action version automatically.
+[Dependabot](../../../.github/dependabot.yml) opens a PR whenever a new `backport`
+is published (including minor/patch). Dependabot bumps the dependency but not the
+action's own `version`, so mirror it before merge (CI blocks the merge until it
+matches):
+
+```bash
+gh pr checkout <pr-number>
+npm ci
+npm run sync-version     # npm version <backport> --no-git-tag-version
+git commit -am "chore: mirror backport version"
+git push
+```
+
+Then merge — the release workflow tags the matching action version automatically.
+The mirror lives in the PR, not the release workflow, because that is the only
+tokenless way to keep `main`'s `package.json` truthful: the workflow never pushes
+to protected `main`.
 
 ## Manual action-only release
 
