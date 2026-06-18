@@ -1,6 +1,6 @@
 {
   "name": "backport-github-action",
-  "version": "12.0.1",
+  "version": "12.0.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,7 +9,7 @@
     "lint": "eslint '{src,scripts}/**/*.ts' && tsc --noEmit --project tsconfig.eslint.json",
     "test": "vitest run",
     "test:e2e": "npx tsx scripts/smoke-test/smoke-test.ts",
-    "sync-version": "npm version $(node -p \"require('./node_modules/backport/package.json').version\") --no-git-tag-version --allow-same-version"
+    "sync-version": "npm version \"$(node -p 'require(\"./package-lock.json\").packages[\"node_modules/backport\"].version')\" --no-git-tag-version --allow-same-version"
   },
   "engines": {
     "node": ">=22.0.0"
